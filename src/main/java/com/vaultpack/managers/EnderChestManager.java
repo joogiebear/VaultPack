@@ -72,7 +72,9 @@ public class EnderChestManager {
         page.setActiveInventory(inventory);
         openEnderPages.put(player.getUniqueId(), pageNumber);
 
-        player.sendMessage(ChatColor.GREEN + "Opened Ender Chest Page " + pageNumber);
+        // Send action bar feedback
+        com.vaultpack.utils.ActionBarUtil.sendInfo(player,
+            "Ender Chest - Page " + pageNumber + " &7(" + page.getUsedSlots() + "/45)");
     }
 
     /**

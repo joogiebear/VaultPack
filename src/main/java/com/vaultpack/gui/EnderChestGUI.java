@@ -174,6 +174,14 @@ public class EnderChestGUI {
         MenuConfig menuConfig = plugin.getMenuManager().getMenu("enderchest");
         if (menuConfig == null) return;
 
+        // First check for navigation buttons (close, back, etc.)
+        MenuConfig.SlotConfig slotConfig = menuConfig.getSlot(slot);
+        if (slotConfig != null && slotConfig.clickAction != null) {
+            executeNavigationAction(player, slotConfig.clickAction, slotConfig.menu);
+            playSound(player, menuConfig.getSound("click"));
+            return;
+        }
+
         // Get the page number from the GUI slot
         int pageNumber = getPageNumberFromGUISlot(slot, menuConfig);
         if (pageNumber == -1) return;
@@ -193,6 +201,45 @@ public class EnderChestGUI {
             // Open the ender page
             plugin.getEnderChestManager().openEnderPage(player, pageNumber);
             playSound(player, menuConfig.getSound("page-open"));
+        }
+    }
+
+    /**
+     * Execute navigation action (close, open menu, etc.)
+     */
+    private void executeNavigationAction(Player player, String action, String menu) {
+        if (action == null) return;
+
+        switch (action.toLowerCase()) {
+            case "close_inventory":
+                player.closeInventory();
+                break;
+
+            case "open_menu":
+                if (menu != null) {
+                    openMenu(player, menu);
+                }
+                break;
+
+            default:
+                plugin.getLogger().warning("Unknown navigation action: " + action);
+                break;
+        }
+    }
+
+    /**
+     * Open a menu by name
+     */
+    private void openMenu(Player player, String menuName) {
+        switch (menuName.toLowerCase()) {
+            case "storage":
+                StorageMenuGUI storageGUI = new StorageMenuGUI(plugin);
+                storageGUI.open(player);
+                break;
+
+            default:
+                plugin.getLogger().warning("Unknown menu: " + menuName);
+                break;
         }
     }
 
@@ -274,11 +321,15 @@ public class EnderChestGUI {
      * Play sound
      */
     private void playSound(Player player, String soundName) {
+        if (soundName == null || soundName.isEmpty()) return;
+
         try {
-            org.bukkit.Sound sound = org.bukkit.Sound.valueOf(soundName.toUpperCase());
-            player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
+            // Convert enum-style sound names (BLOCK_CHEST_OPEN) to namespaced keys (block.chest.open)
+            String convertedSound = soundName.toLowerCase().replace('_', '.');
+            player.playSound(player.getLocation(), convertedSound,
+                org.bukkit.SoundCategory.MASTER, 1.0f, 1.0f);
         } catch (IllegalArgumentException e) {
-            // Ignore invalid sound
+            plugin.getLogger().warning("Invalid sound: " + soundName);
         }
     }
 }

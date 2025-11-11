@@ -89,7 +89,10 @@ public class BackpackManager {
         backpack.setActiveInventory(inventory);
         openBackpacks.put(player.getUniqueId(), slotNumber);
 
-        player.sendMessage(ChatColor.GREEN + "Opened backpack #" + slotNumber);
+        // Send action bar feedback
+        com.vaultpack.utils.ActionBarUtil.sendInfo(player,
+            "Backpack #" + slotNumber + " | " + backpack.getTier().getColoredDisplayName() +
+            " &7(" + backpack.getUsedSlots() + "/" + backpack.getSize() + ")");
     }
 
     private void addNavigationHeader(Inventory inventory, Player player, int currentSlot, PlayerBackpackData data) {

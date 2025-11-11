@@ -114,7 +114,7 @@ public class EnderChestListener implements Listener {
                         }
                     }, 1L);
                 } else {
-                    player.sendMessage(ChatColor.YELLOW + "Already at the first page!");
+                    com.vaultpack.utils.ActionBarUtil.sendWarning(player, "Already at the first page!");
                 }
                 break;
 
@@ -128,7 +128,7 @@ public class EnderChestListener implements Listener {
                         }
                     }, 1L);
                 } else {
-                    player.sendMessage(ChatColor.YELLOW + "No previous page!");
+                    com.vaultpack.utils.ActionBarUtil.sendWarning(player, "No previous page!");
                 }
                 break;
 
@@ -142,7 +142,7 @@ public class EnderChestListener implements Listener {
                         }
                     }, 1L);
                 } else {
-                    player.sendMessage(ChatColor.YELLOW + "No next page!");
+                    com.vaultpack.utils.ActionBarUtil.sendWarning(player, "No next page!");
                 }
                 break;
 
@@ -156,7 +156,7 @@ public class EnderChestListener implements Listener {
                         }
                     }, 1L);
                 } else {
-                    player.sendMessage(ChatColor.YELLOW + "Already at the last page!");
+                    com.vaultpack.utils.ActionBarUtil.sendWarning(player, "Already at the last page!");
                 }
                 break;
         }

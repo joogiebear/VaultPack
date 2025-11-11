@@ -21,12 +21,14 @@ public class BackpackDataManager {
 
     private final VaultPackPlugin plugin;
     private final File dataFile;
+    private final File backupFolder;
     private FileConfiguration dataConfig;
     private Map<UUID, PlayerBackpackData> playerDataCache;
 
     public BackpackDataManager(VaultPackPlugin plugin) {
         this.plugin = plugin;
         this.dataFile = new File(plugin.getDataFolder(), "playerdata.yml");
+        this.backupFolder = new File(plugin.getDataFolder(), "backups");
         this.playerDataCache = new HashMap<>();
 
         // Create data file if it doesn't exist
@@ -39,7 +41,13 @@ public class BackpackDataManager {
             }
         }
 
+        // Create backup folder
+        if (!backupFolder.exists()) {
+            backupFolder.mkdirs();
+        }
+
         loadDataFile();
+        scheduleAutoBackup();
     }
 
     private void loadDataFile() {
@@ -180,6 +188,14 @@ public class BackpackDataManager {
     }
 
     public void savePlayerData(UUID playerId) {
+        savePlayerData(playerId, false);
+    }
+
+    public void savePlayerDataSync(UUID playerId) {
+        savePlayerData(playerId, true);
+    }
+
+    private void savePlayerData(UUID playerId, boolean synchronous) {
         PlayerBackpackData data = playerDataCache.get(playerId);
         if (data == null) {
             return;
@@ -245,14 +261,24 @@ public class BackpackDataManager {
             }
         }
 
-        saveDataFile();
+        // Save async or sync
+        if (synchronous) {
+            saveDataFile();
+        } else {
+            saveDataFileAsync();
+        }
+    }
+
+    private void saveDataFileAsync() {
+        org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, this::saveDataFile);
     }
 
     public void saveAllData() {
         plugin.getLogger().info("Saving all player backpack data...");
 
+        // Use synchronous saving for shutdown to ensure all data is written
         for (UUID playerId : playerDataCache.keySet()) {
-            savePlayerData(playerId);
+            savePlayerDataSync(playerId);
         }
 
         plugin.getLogger().info("All player data saved!");
@@ -283,5 +309,93 @@ public class BackpackDataManager {
 
     public void clearCache() {
         playerDataCache.clear();
+    }
+
+    /**
+     * Reset all data for a player (admin command)
+     */
+    public void resetPlayerData(UUID playerId) {
+        // Remove from cache
+        playerDataCache.remove(playerId);
+
+        // Remove from config file
+        String path = "players." + playerId.toString();
+        dataConfig.set(path, null);
+        saveDataFile();
+
+        // Create fresh data with defaults
+        PlayerBackpackData newData = new PlayerBackpackData(playerId);
+        newData.setUnlockedSlots(plugin.getConfigManager().getDefaultUnlockedSlots());
+        newData.setUnlockedEnderPages(1); // Default to 1 page unlocked
+        playerDataCache.put(playerId, newData);
+
+        // Save the fresh data
+        savePlayerData(playerId);
+    }
+
+    /**
+     * Create a timestamped backup of player data
+     */
+    public void createBackup() {
+        try {
+            // Generate timestamp for backup name
+            String timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new java.util.Date());
+            File backupFile = new File(backupFolder, "playerdata_" + timestamp + ".yml");
+
+            // Copy current data file to backup
+            java.nio.file.Files.copy(dataFile.toPath(), backupFile.toPath());
+
+            plugin.getLogger().info("Backup created: " + backupFile.getName());
+
+            // Clean up old backups (keep last 10)
+            cleanupOldBackups(10);
+
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.WARNING, "Failed to create backup!", e);
+        }
+    }
+
+    /**
+     * Delete old backup files, keeping only the most recent N backups
+     */
+    private void cleanupOldBackups(int keepCount) {
+        File[] backups = backupFolder.listFiles((dir, name) -> name.startsWith("playerdata_") && name.endsWith(".yml"));
+
+        if (backups == null || backups.length <= keepCount) {
+            return; // No cleanup needed
+        }
+
+        // Sort by last modified time (newest first)
+        java.util.Arrays.sort(backups, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+
+        // Delete old backups
+        int deleted = 0;
+        for (int i = keepCount; i < backups.length; i++) {
+            if (backups[i].delete()) {
+                deleted++;
+            }
+        }
+
+        if (deleted > 0) {
+            plugin.getLogger().info("Cleaned up " + deleted + " old backup(s)");
+        }
+    }
+
+    /**
+     * Schedule automatic backups every 30 minutes
+     */
+    private void scheduleAutoBackup() {
+        // Run backup every 30 minutes (36000 ticks)
+        org.bukkit.Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            plugin.getLogger().info("Running automatic backup...");
+            createBackup();
+        }, 36000L, 36000L); // 30 minutes = 36000 ticks
+    }
+
+    /**
+     * Get the backup folder
+     */
+    public File getBackupFolder() {
+        return backupFolder;
     }
 }

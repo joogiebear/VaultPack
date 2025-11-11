@@ -60,6 +60,13 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
             case "clear":
                 return handleClear(sender, args);
 
+            case "reset":
+                return handleReset(sender, args);
+
+            case "inspect":
+            case "view":
+                return handleInspect(sender, args);
+
             default:
                 sender.sendMessage(ChatColor.RED + "Unknown command! Use /vaultpack help");
                 return true;
@@ -237,6 +244,132 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleReset(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("vaultpack.admin")) {
+            sender.sendMessage(ChatColor.RED + "You don't have permission to use this command!");
+            return true;
+        }
+
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /vaultpack reset <player>");
+            sender.sendMessage(ChatColor.YELLOW + "Warning: This will delete ALL backpack and ender chest data!");
+            return true;
+        }
+
+        // Support both online and offline players
+        String playerName = args[1];
+        Player onlinePlayer = Bukkit.getPlayer(playerName);
+        java.util.UUID targetUUID = null;
+
+        if (onlinePlayer != null) {
+            targetUUID = onlinePlayer.getUniqueId();
+        } else {
+            // Try to find offline player
+            org.bukkit.OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+            if (offlinePlayer.hasPlayedBefore()) {
+                targetUUID = offlinePlayer.getUniqueId();
+                playerName = offlinePlayer.getName();
+            }
+        }
+
+        if (targetUUID == null) {
+            sender.sendMessage(ChatColor.RED + "Player not found!");
+            return true;
+        }
+
+        // Close any open backpacks/ender pages
+        if (onlinePlayer != null) {
+            if (plugin.getBackpackManager().isBackpackOpen(onlinePlayer)) {
+                onlinePlayer.closeInventory();
+            }
+            if (plugin.getEnderChestManager().isEnderPageOpen(onlinePlayer)) {
+                onlinePlayer.closeInventory();
+            }
+        }
+
+        // Reset player data
+        plugin.getDataManager().resetPlayerData(targetUUID);
+
+        sender.sendMessage(ChatColor.GREEN + "Successfully reset data for " + playerName);
+        sender.sendMessage(ChatColor.GRAY + "  • All backpacks removed");
+        sender.sendMessage(ChatColor.GRAY + "  • All ender chest pages cleared");
+        sender.sendMessage(ChatColor.GRAY + "  • Slot unlocks reset to default");
+
+        if (onlinePlayer != null) {
+            onlinePlayer.sendMessage(ChatColor.YELLOW + "Your VaultPack data has been reset by an admin!");
+        }
+
+        return true;
+    }
+
+    private boolean handleInspect(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("vaultpack.admin")) {
+            sender.sendMessage(ChatColor.RED + "You don't have permission to use this command!");
+            return true;
+        }
+
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /vaultpack inspect <player>");
+            return true;
+        }
+
+        Player target = Bukkit.getPlayer(args[1]);
+        if (target == null) {
+            sender.sendMessage(ChatColor.RED + "Player not found or not online!");
+            return true;
+        }
+
+        com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(target.getUniqueId());
+
+        sender.sendMessage(ChatColor.DARK_GRAY + "==========================================");
+        sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "VaultPack Data: " + ChatColor.YELLOW + target.getName());
+        sender.sendMessage(ChatColor.DARK_GRAY + "==========================================");
+
+        // Backpack information
+        sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Backpacks:");
+        sender.sendMessage(ChatColor.GRAY + "  Unlocked Slots: " + ChatColor.WHITE + data.getUnlockedSlots() + "/" + plugin.getConfigManager().getMaxBackpackSlots());
+        sender.sendMessage(ChatColor.GRAY + "  Active Backpacks: " + ChatColor.WHITE + data.getActiveBackpackCount());
+        sender.sendMessage(ChatColor.GRAY + "  Total Storage: " + ChatColor.WHITE + data.getTotalStorageSlots() + " slots");
+        sender.sendMessage(ChatColor.GRAY + "  Used Storage: " + ChatColor.WHITE + data.getTotalUsedSlots() + " slots");
+
+        // List each backpack
+        sender.sendMessage("");
+        sender.sendMessage(ChatColor.YELLOW + "Backpack Details:");
+        for (int i = 1; i <= 18; i++) {
+            if (data.hasBackpack(i)) {
+                com.vaultpack.models.Backpack backpack = data.getBackpack(i);
+                String tierColor = ChatColor.translateAlternateColorCodes('&', backpack.getTier().getColorCode());
+                sender.sendMessage(ChatColor.GRAY + "  Slot #" + i + ": " + tierColor + backpack.getTier().getDisplayName() +
+                        ChatColor.GRAY + " (" + backpack.getUsedSlots() + "/" + backpack.getSize() + " used)");
+            }
+        }
+
+        // Ender chest information
+        sender.sendMessage("");
+        sender.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Ender Chest:");
+        sender.sendMessage(ChatColor.GRAY + "  Unlocked Pages: " + ChatColor.WHITE + data.getUnlockedEnderPages() + "/9");
+        sender.sendMessage(ChatColor.GRAY + "  Total Storage: " + ChatColor.WHITE + data.getTotalEnderStorageSlots() + " slots");
+        sender.sendMessage(ChatColor.GRAY + "  Used Storage: " + ChatColor.WHITE + data.getTotalUsedEnderSlots() + " slots");
+
+        // List each ender page
+        sender.sendMessage("");
+        sender.sendMessage(ChatColor.YELLOW + "Ender Page Details:");
+        for (int i = 1; i <= 9; i++) {
+            if (data.isEnderPageUnlocked(i)) {
+                com.vaultpack.models.EnderPage page = data.getEnderPage(i);
+                if (page != null) {
+                    sender.sendMessage(ChatColor.GRAY + "  Page " + i + ": " +
+                            ChatColor.WHITE + page.getUsedSlots() + "/45 used");
+                } else {
+                    sender.sendMessage(ChatColor.GRAY + "  Page " + i + ": " + ChatColor.YELLOW + "Empty");
+                }
+            }
+        }
+
+        sender.sendMessage(ChatColor.DARK_GRAY + "==========================================");
+        return true;
+    }
+
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------");
         sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "VaultPack Admin Commands");
@@ -250,6 +383,8 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ChatColor.YELLOW + "/vaultpack giveitem <player> <type> [amt] " + ChatColor.GRAY + "- Give backpack item");
             sender.sendMessage(ChatColor.YELLOW + "/vaultpack list " + ChatColor.GRAY + "- List backpack types");
             sender.sendMessage(ChatColor.YELLOW + "/vaultpack clear <player> <slot> " + ChatColor.GRAY + "- Clear backpack contents");
+            sender.sendMessage(ChatColor.YELLOW + "/vaultpack reset <player> " + ChatColor.GRAY + "- Reset ALL player data");
+            sender.sendMessage(ChatColor.YELLOW + "/vaultpack inspect <player> " + ChatColor.GRAY + "- View player's storage");
         }
 
         sender.sendMessage("");
@@ -269,11 +404,12 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
             completions.addAll(Arrays.asList("help", "version"));
 
             if (sender.hasPermission("vaultpack.admin")) {
-                completions.addAll(Arrays.asList("reload", "give", "giveitem", "list", "types", "clear"));
+                completions.addAll(Arrays.asList("reload", "give", "giveitem", "list", "types", "clear", "reset", "inspect", "view"));
             }
         } else if (args.length == 2 && sender.hasPermission("vaultpack.admin")) {
             if (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("giveitem") ||
-                    args[0].equalsIgnoreCase("clear")) {
+                    args[0].equalsIgnoreCase("clear") || args[0].equalsIgnoreCase("reset") ||
+                    args[0].equalsIgnoreCase("inspect") || args[0].equalsIgnoreCase("view")) {
                 // Add online player names
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     completions.add(player.getName());

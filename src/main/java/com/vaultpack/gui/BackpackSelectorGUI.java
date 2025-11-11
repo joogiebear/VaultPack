@@ -214,6 +214,14 @@ public class BackpackSelectorGUI {
         MenuConfig menuConfig = plugin.getMenuManager().getMenu("backpack_selector");
         if (menuConfig == null) return;
 
+        // First check for navigation buttons (close, back, etc.)
+        MenuConfig.SlotConfig slotConfig = menuConfig.getSlot(slot);
+        if (slotConfig != null && slotConfig.clickAction != null) {
+            executeNavigationAction(player, slotConfig.clickAction, slotConfig.menu);
+            playSound(player, menuConfig.getSound("click"));
+            return;
+        }
+
         // Get the slot number from the GUI slot
         int slotNumber = getSlotNumberFromGUISlot(slot, menuConfig);
         if (slotNumber == -1) return;
@@ -245,6 +253,45 @@ public class BackpackSelectorGUI {
                 // Upgrade backpack
                 handleUpgradeBackpack(player, slotNumber);
             }
+        }
+    }
+
+    /**
+     * Execute navigation action (close, open menu, etc.)
+     */
+    private void executeNavigationAction(Player player, String action, String menu) {
+        if (action == null) return;
+
+        switch (action.toLowerCase()) {
+            case "close_inventory":
+                player.closeInventory();
+                break;
+
+            case "open_menu":
+                if (menu != null) {
+                    openMenu(player, menu);
+                }
+                break;
+
+            default:
+                plugin.getLogger().warning("Unknown navigation action: " + action);
+                break;
+        }
+    }
+
+    /**
+     * Open a menu by name
+     */
+    private void openMenu(Player player, String menuName) {
+        switch (menuName.toLowerCase()) {
+            case "storage":
+                StorageMenuGUI storageGUI = new StorageMenuGUI(plugin);
+                storageGUI.open(player);
+                break;
+
+            default:
+                plugin.getLogger().warning("Unknown menu: " + menuName);
+                break;
         }
     }
 
@@ -381,11 +428,15 @@ public class BackpackSelectorGUI {
      * Play sound
      */
     private void playSound(Player player, String soundName) {
+        if (soundName == null || soundName.isEmpty()) return;
+
         try {
-            org.bukkit.Sound sound = org.bukkit.Sound.valueOf(soundName.toUpperCase());
-            player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
+            // Convert enum-style sound names (BLOCK_CHEST_OPEN) to namespaced keys (block.chest.open)
+            String convertedSound = soundName.toLowerCase().replace('_', '.');
+            player.playSound(player.getLocation(), convertedSound,
+                org.bukkit.SoundCategory.MASTER, 1.0f, 1.0f);
         } catch (IllegalArgumentException e) {
-            // Ignore invalid sound
+            plugin.getLogger().warning("Invalid sound: " + soundName);
         }
     }
 }

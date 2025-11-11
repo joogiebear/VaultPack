@@ -91,6 +91,13 @@ public class VaultPackPlugin extends JavaPlugin {
         configManager = new ConfigManager(this);
         configManager.loadConfig();
 
+        // Validate configuration
+        com.vaultpack.utils.ConfigValidator validator = new com.vaultpack.utils.ConfigValidator(this);
+        if (!validator.validate()) {
+            logger.severe("Configuration validation failed! Plugin may not work correctly.");
+            logger.severe("Please fix the errors above and reload the plugin.");
+        }
+
         // Menu manager (v1.0.0 - load menus from menus/ folder)
         menuManager = new com.vaultpack.config.MenuManager(this);
         menuManager.loadMenus();

@@ -361,8 +361,10 @@ public class MenuClickHandler implements Listener {
         if (soundName == null || soundName.isEmpty()) return;
 
         try {
-            Sound sound = Sound.valueOf(soundName.toUpperCase());
-            player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
+            // Convert enum-style sound names (BLOCK_CHEST_OPEN) to namespaced keys (block.chest.open)
+            String convertedSound = soundName.toLowerCase().replace('_', '.');
+            player.playSound(player.getLocation(), convertedSound,
+                org.bukkit.SoundCategory.MASTER, 1.0f, 1.0f);
         } catch (IllegalArgumentException e) {
             plugin.getLogger().warning("Invalid sound: " + soundName);
         }

@@ -462,7 +462,7 @@ public class BackpackListener implements Listener {
                         }
                     }, 1L);
                 } else {
-                    player.sendMessage(ChatColor.YELLOW + "Already at the first backpack!");
+                    com.vaultpack.utils.ActionBarUtil.sendWarning(player, "Already at the first backpack!");
                 }
                 break;
 
@@ -476,7 +476,7 @@ public class BackpackListener implements Listener {
                         }
                     }, 1L);
                 } else {
-                    player.sendMessage(ChatColor.YELLOW + "No previous backpack!");
+                    com.vaultpack.utils.ActionBarUtil.sendWarning(player, "No previous backpack!");
                 }
                 break;
 
@@ -490,7 +490,7 @@ public class BackpackListener implements Listener {
                         }
                     }, 1L);
                 } else {
-                    player.sendMessage(ChatColor.YELLOW + "No next backpack!");
+                    com.vaultpack.utils.ActionBarUtil.sendWarning(player, "No next backpack!");
                 }
                 break;
 
@@ -504,7 +504,7 @@ public class BackpackListener implements Listener {
                         }
                     }, 1L);
                 } else {
-                    player.sendMessage(ChatColor.YELLOW + "Already at the last backpack!");
+                    com.vaultpack.utils.ActionBarUtil.sendWarning(player, "Already at the last backpack!");
                 }
                 break;
         }

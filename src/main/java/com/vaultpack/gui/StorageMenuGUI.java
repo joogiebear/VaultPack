@@ -294,11 +294,15 @@ public class StorageMenuGUI {
      * Play sound
      */
     private void playSound(Player player, String soundName) {
+        if (soundName == null || soundName.isEmpty()) return;
+
         try {
-            org.bukkit.Sound sound = org.bukkit.Sound.valueOf(soundName.toUpperCase());
-            player.playSound(player.getLocation(), sound, 1.0f, 1.0f);
+            // Convert enum-style sound names (BLOCK_CHEST_OPEN) to namespaced keys (block.chest.open)
+            String convertedSound = soundName.toLowerCase().replace('_', '.');
+            player.playSound(player.getLocation(), convertedSound,
+                org.bukkit.SoundCategory.MASTER, 1.0f, 1.0f);
         } catch (IllegalArgumentException e) {
-            // Ignore invalid sound
+            plugin.getLogger().warning("Invalid sound: " + soundName);
         }
     }
 }

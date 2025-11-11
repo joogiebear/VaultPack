@@ -24,8 +24,8 @@ public class DeathProtectionListener implements Listener {
         // Items in backpacks and ender pages are stored in memory/disk, not in player inventory
         // They are automatically protected by design - this listener exists as a safety check
 
-        // Save player data immediately on death to ensure no data loss
-        plugin.getDataManager().savePlayerData(event.getEntity().getUniqueId());
+        // Save player data SYNCHRONOUSLY on death to ensure no data loss
+        plugin.getDataManager().savePlayerDataSync(event.getEntity().getUniqueId());
 
         // Log for debugging/audit purposes
         plugin.getLogger().fine("Player " + event.getEntity().getName() + " died - backpack data saved");
