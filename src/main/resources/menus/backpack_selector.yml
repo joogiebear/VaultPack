@@ -1,0 +1,173 @@
+# ============================================
+# VaultPack - Backpack Selector Menu
+# ============================================
+# View and manage all 18 backpack slots!
+# Command: /backpack
+#
+# Slot Reference (6 rows = 54 slots):
+#   Row 1: [ 0] [ 1] [ 2] [ 3] [ 4] [ 5] [ 6] [ 7] [ 8]
+#   Row 2: [ 9] [10] [11] [12] [13] [14] [15] [16] [17]
+#   Row 3: [18] [19] [20] [21] [22] [23] [24] [25] [26]
+#   Row 4: [27] [28] [29] [30] [31] [32] [33] [34] [35]
+#   Row 5: [36] [37] [38] [39] [40] [41] [42] [43] [44]
+#   Row 6: [45] [46] [47] [48] [49] [50] [51] [52] [53]
+# ============================================
+
+title: "&8✦ &6&lBackpacks &8✦"
+rows: 6
+
+# Visual mask pattern (backpack-themed)
+mask:
+  items:
+    - gray_stained_glass_pane   # 1
+    - orange_stained_glass_pane # 2
+    - black_stained_glass_pane  # 3
+  pattern:
+    - "333333333"  # Slots 0-8
+    - "322222223"  # Slots 9-17
+    - "320000023"  # Slots 18-26
+    - "320000023"  # Slots 27-35
+    - "322222223"  # Slots 36-44
+    - "333020333"  # Slots 45-53
+
+# Custom decoration slots
+slots:
+  # ========== HEADER ==========
+  header:
+    slot: 4
+    item: player_head
+    head: "%player%"
+    name: "&e%player%'s Backpacks"
+    lore:
+      - ""
+      - "&7Your portable storage system!"
+      - ""
+      - "&eUnlocked Slots: &f%unlocked%&7/&f18"
+      - "&eTotal Items: &a%total_items%"
+      - "&eTotal Capacity: &f%total_capacity%"
+      - ""
+      - "&8Click slots below to manage backpacks"
+
+  # ========== HELP INFO ==========
+  help:
+    slot: 48
+    item: book
+    name: "&eℹ &7Backpack Guide"
+    lore:
+      - ""
+      - "&7• &fCraft &7backpacks with recipes"
+      - "&7• &fPlace &7them in empty slots"
+      - "&7• &fUpgrade &7to increase size"
+      - "&7• &fUnlock &7more slots with &6/bp unlock"
+      - ""
+      - "&7Tier progression:"
+      - "  &aSmall &7→ &9Medium &7→ &5Large"
+      - "  &7→ &dHuge &7→ &6Massive &7→ &cColossal"
+
+  # ========== NAVIGATION ==========
+  close:
+    slot: 49
+    item: barrier
+    name: "&cClose"
+    click-action: close_inventory
+
+  back:
+    slot: 50
+    item: arrow
+    name: "&fBack to Storage"
+    lore:
+      - "&7Return to unified storage menu"
+    click-action: open_menu
+    menu: storage
+
+# ========== ALL 18 BACKPACK SLOTS ==========
+# Grid layout: 3 rows × 6 columns = 18 slots
+# Centered in the GUI
+backpack-slots:
+  # Row 1 (slots 20-25)
+  slot-1:  {slot: 20}
+  slot-2:  {slot: 21}
+  slot-3:  {slot: 22}
+  slot-4:  {slot: 23}
+  slot-5:  {slot: 24}
+  slot-6:  {slot: 25}
+
+  # Row 2 (slots 29-34)
+  slot-7:  {slot: 29}
+  slot-8:  {slot: 30}
+  slot-9:  {slot: 31}
+  slot-10: {slot: 32}
+  slot-11: {slot: 33}
+  slot-12: {slot: 34}
+
+  # Row 3 (slots 38-43)
+  slot-13: {slot: 38}
+  slot-14: {slot: 39}
+  slot-15: {slot: 40}
+  slot-16: {slot: 41}
+  slot-17: {slot: 42}
+  slot-18: {slot: 43}
+
+  # ========== SLOT APPEARANCES ==========
+
+  # Locked slot appearance
+  locked:
+    item: gray_dye
+    name: "&7Slot %slot% &c✖ LOCKED"
+    lore:
+      - ""
+      - "&7This slot needs to be unlocked!"
+      - ""
+      - "&eUnlock Cost: &a$%cost%"
+      - "&ePermission: &7vaultpack.slots.%slot%"
+      - ""
+      - "&eLeft-Click &8» &7Unlock with money"
+      - "&eRight-Click &8» &7View info"
+      - ""
+      - "&8Slot ID: %slot%"
+    left-click-action: unlock_slot
+    right-click-action: show_unlock_info
+
+  # Empty (unlocked) slot appearance
+  empty:
+    item: lime_dye
+    name: "&aSlot %slot% &7✓ EMPTY"
+    lore:
+      - ""
+      - "&7This slot is ready!"
+      - "&7Hold a backpack and click to place it"
+      - ""
+      - "&8Slot ID: %slot%"
+    click-action: place_backpack
+
+  # Active backpack slot appearance
+  active:
+    # Item will be the actual backpack item
+    name: "&6Backpack %slot% &8[%tier%]"
+    lore:
+      - ""
+      - "&7Tier: %tier_display%"
+      - "&7Size: &e%size% slots &7(&f%rows% rows&7)"
+      - "&7Items: &a%used%&7/&e%size%"
+      - "&7Fill: %fill_bar% &f%fill_percent%%"
+      - ""
+      - "&eLeft-Click &8» &7Open backpack"
+      - "&eRight-Click &8» &7Remove backpack"
+      - "&eShift-Click &8» &7Upgrade (&a$%upgrade_cost%&7)"
+      - ""
+      - "&8Slot ID: %slot%"
+    left-click-action: open_backpack
+    right-click-action: remove_backpack
+    shift-click-action: upgrade_backpack
+    glow-if-has-items: true
+
+# ========== SOUNDS ==========
+sounds:
+  open: BLOCK_CHEST_OPEN
+  close: BLOCK_CHEST_CLOSE
+  click: UI_BUTTON_CLICK
+  unlock: ENTITY_PLAYER_LEVELUP
+  place: ENTITY_ITEM_PICKUP
+  remove: ENTITY_ITEM_PICKUP
+  upgrade: BLOCK_ANVIL_USE
+  error: ENTITY_VILLAGER_NO

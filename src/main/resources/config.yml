@@ -1,0 +1,189 @@
+# ============================================
+#           VaultPack Configuration
+# ============================================
+# v1.0.0 - Multi-backpack storage system
+#
+# For GUI customization, see menus/ folder
+# For backpack types, see backpacks.yml
+# For messages, see lang.yml
+# ============================================
+
+# ========== STORAGE LIMITS ==========
+storage:
+  # Maximum backpack slots players can unlock
+  max-backpack-slots: 18
+
+  # Default unlocked slots for new players
+  default-unlocked-slots: 1
+
+  # Maximum ender chest pages
+  max-enderchest-pages: 9
+
+  # Default unlocked ender pages for new players
+  default-unlocked-pages: 1
+
+# ========== ECONOMY SETTINGS ==========
+economy:
+  enabled: true
+
+  # Backpack slot unlock costs
+  slot-unlock:
+    enabled: true
+    # Cost formula: base-cost + (slot-number * cost-per-slot)
+    # Example: Slot 2 = 1000 + (2 * 500) = 2000
+    #          Slot 3 = 1000 + (3 * 500) = 2500
+    base-cost: 1000
+    cost-per-slot: 500
+
+  # Ender chest page unlock costs
+  page-unlock:
+    enabled: true
+    # Cost formula: base-cost + (page-number * cost-per-page)
+    # Example: Page 2 = 2000 + (2 * 1000) = 4000
+    #          Page 3 = 2000 + (3 * 1000) = 5000
+    base-cost: 2000
+    cost-per-page: 1000
+
+  # Backpack upgrade costs (to increase size)
+  upgrade-costs:
+    small-to-medium: 5000
+    medium-to-large: 10000
+    large-to-huge: 20000
+    huge-to-massive: 40000
+    massive-to-colossal: 80000
+    colossal-to-greater: 160000
+    greater-to-jumbo: 320000
+
+# ========== PERMISSIONS ==========
+# Alternative to economy - use permissions instead
+permissions:
+  # Use permissions for slot unlocking
+  # Grant: vaultpack.slots.<slot-number>
+  use-for-slots: true
+  slot-format: "vaultpack.slots.%slot%"
+
+  # Use permissions for page unlocking
+  # Grant: vaultpack.enderchest.page.<page-number>
+  use-for-pages: true
+  page-format: "vaultpack.enderchest.page.%page%"
+
+  # If both economy and permissions are enabled:
+  # Player can unlock with EITHER money OR permission
+  require-both: false
+
+# ========== ITEM RESTRICTIONS ==========
+item-blacklist:
+  enabled: true
+
+  # Prevent these items from being stored in backpacks
+  # Use Bukkit Material names
+  materials:
+    - BEDROCK
+    - BARRIER
+    - COMMAND_BLOCK
+    - CHAIN_COMMAND_BLOCK
+    - REPEATING_COMMAND_BLOCK
+    - COMMAND_BLOCK_MINECART
+    - STRUCTURE_BLOCK
+    - STRUCTURE_VOID
+    - JIGSAW
+
+  # Prevent shulker boxes (prevents nested storage exploits)
+  prevent-shulker-boxes: false
+
+  # If true, also prevents custom items from shulker boxes
+  prevent-all-shulker-variants: false
+
+  # Custom message when blacklisted item is attempted
+  message: "&cThis item cannot be stored in backpacks!"
+
+# ========== DEATH PROTECTION ==========
+death-protection:
+  # Keep backpack items on death
+  keep-backpack-items: true
+
+  # Keep ender chest items on death (vanilla ender chests already do this)
+  keep-ender-items: true
+
+  # If false, items drop on death
+  # If true and keep-gamerule is enabled, items are kept
+  respect-keep-inventory-gamerule: true
+
+# ========== PLUGIN INTEGRATION ==========
+hooks:
+  # Vault - Economy support (required for economy features)
+  vault:
+    enabled: true
+
+  # PlaceholderAPI - Placeholder support
+  placeholderapi:
+    enabled: true
+
+  # EcoItems - Custom item support for recipes
+  ecoitems:
+    enabled: true
+
+# ========== DATA STORAGE ==========
+data:
+  # Auto-save interval (in seconds)
+  auto-save-interval: 300
+
+  # Save data when player logs out
+  save-on-logout: true
+
+  # Save data when plugin disables
+  save-on-disable: true
+
+  # Storage format (json or yaml)
+  format: json
+
+  # Compress data to save space
+  compress: true
+
+# ========== ADVANCED SETTINGS ==========
+advanced:
+  # Debug mode (verbose console logging)
+  debug: false
+
+  # Check for updates on startup
+  check-updates: true
+
+  # Metrics (bStats) - Help us improve!
+  metrics: true
+
+  # Max backpack title length (prevent issues)
+  max-title-length: 32
+
+  # Allow backpacks in backpacks (not recommended!)
+  allow-nested-backpacks: false
+
+  # Enable shift-click to move items to backpacks
+  shift-click-to-backpack: true
+
+# ========== SOUNDS ==========
+# Global sound settings (can be overridden in menus)
+sounds:
+  enabled: true
+  volume: 1.0
+  pitch: 1.0
+
+  # Specific sounds
+  backpack-open: BLOCK_CHEST_OPEN
+  backpack-close: BLOCK_CHEST_CLOSE
+  enderchest-open: BLOCK_ENDER_CHEST_OPEN
+  enderchest-close: BLOCK_ENDER_CHEST_CLOSE
+  slot-unlock: ENTITY_PLAYER_LEVELUP
+  backpack-upgrade: BLOCK_ANVIL_USE
+  backpack-place: ENTITY_ITEM_PICKUP
+  backpack-remove: ENTITY_ITEM_PICKUP
+  error: ENTITY_VILLAGER_NO
+
+# ========== PLACEHOLDERS ==========
+# Available placeholders (requires PlaceholderAPI):
+#   %vaultpack_slots_unlocked% - Number of unlocked backpack slots
+#   %vaultpack_slots_total% - Total backpack slots
+#   %vaultpack_pages_unlocked% - Number of unlocked ender pages
+#   %vaultpack_pages_total% - Total ender pages
+#   %vaultpack_backpack_<slot>_tier% - Tier of backpack in slot
+#   %vaultpack_backpack_<slot>_size% - Size of backpack in slot
+#   %vaultpack_backpack_<slot>_used% - Items in backpack in slot

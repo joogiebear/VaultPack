@@ -1,0 +1,156 @@
+# EcoBackpack Language File
+# Customize all messages here
+
+prefix: "&8[&6Backpack&8]&r "
+
+# Slot unlock messages
+slot-unlocked: "&aYou unlocked backpack slot #%slot%!"
+slot-unlock-fail: "&cYou don't have enough money! Required: &e$%cost%"
+slot-unlock-no-permission: "&cYou don't have permission to unlock this slot!"
+slot-already-unlocked: "&cThis slot is already unlocked!"
+max-slots-reached: "&cYou've reached the maximum number of backpack slots! (%max%)"
+
+# Backpack upgrade messages
+backpack-upgraded: "&aBackpack upgraded from &f%old_tier% &ato &f%new_tier%&a!"
+backpack-upgrade-fail: "&cYou don't have enough money! Required: &e$%cost%"
+backpack-upgrade-max: "&cThis backpack is already at maximum size!"
+backpack-upgrade-no-backpack: "&cThere's no backpack in this slot to upgrade!"
+
+# Backpack placement messages
+backpack-placed: "&aBackpack placed in slot #%slot%!"
+backpack-place-fail: "&cYou must hold a backpack item in your hand!"
+backpack-place-occupied: "&cThis slot already has a backpack! Remove it first."
+slot-locked: "&cThis slot is locked! Unlock it first."
+
+# Backpack removal messages
+backpack-removed: "&aBackpack removed from slot #%slot% and returned to inventory!"
+backpack-remove-fail: "&cThere's no backpack in this slot!"
+backpack-remove-full-inventory: "&cYour inventory is full! Cannot remove backpack."
+backpack-remove-confirm: "&eRight-click again to confirm removal. Items will be safe!"
+
+# Backpack usage messages
+backpack-opened: "&aOpened backpack #%slot%"
+backpack-full: "&cThis backpack is full! (%used%/%size% slots)"
+backpack-empty: "&7This backpack is empty."
+
+# Error messages
+no-permission: "&cYou don't have permission to do that!"
+invalid-slot: "&cInvalid slot number! Must be between 1 and %max%."
+player-not-found: "&cPlayer not found!"
+command-player-only: "&cThis command can only be used by players!"
+economy-not-found: "&cEconomy plugin not found! Contact an administrator."
+data-load-error: "&cFailed to load your backpack data! Contact an administrator."
+
+# Admin messages
+admin-slot-given: "&aGave %player% access to slot #%slot%!"
+admin-slot-removed: "&cRemoved %player%'s access to slot #%slot%!"
+admin-backpack-cleared: "&aCleared %player%'s backpack #%slot%!"
+admin-reload: "&aEcoBackpack configuration reloaded!"
+
+# GUI item names and lore
+gui:
+  locked-slot:
+    name: "&7Backpack Slot #%slot% &c[LOCKED]"
+    lore:
+      - "&7This slot is currently locked."
+      - ""
+      - "&eUnlock via Economy: &a$%cost%"
+      - "&eUnlock via Permission: &f%permission%"
+      - ""
+      - "&7Purchase upgrades or obtain"
+      - "&7permissions to unlock this slot!"
+      - ""
+      - "&8Slot ID: #%slot%"
+
+  empty-slot:
+    name: "&aBackpack Slot #%slot% &7[EMPTY]"
+    lore:
+      - "&7This slot is unlocked but empty!"
+      - ""
+      - "&7Craft a backpack item and"
+      - "&7click here to place it."
+      - ""
+      - "&eLeft-Click &7to place backpack"
+      - ""
+      - "&8Slot ID: #%slot%"
+
+  active-slot:
+    name: "&6Backpack #%slot%"
+    lore:
+      - "&7Tier: &f%tier%"
+      - "&7Capacity: &e%size% slots"
+      - "&7Used: &a%used%&7/&e%size%"
+      - "&7Fullness: %fullness_bar%"
+      - ""
+      - "&eLeft-Click &7to open backpack"
+      - "&eRight-Click &7to remove backpack"
+      - "&eShift-Click &7to upgrade size"
+      - ""
+      - "&8Slot ID: #%slot%"
+
+  close-button:
+    name: "&cClose Menu"
+    lore:
+      - "&7Click to close"
+
+  info-button:
+    name: "&bBackpack Info"
+    lore:
+      - "&7Total Slots: &e%unlocked%&7/&e%max%"
+      - "&7Active Backpacks: &a%active%"
+      - "&7Total Storage: &e%total_slots% slots"
+      - ""
+      - "&7Backpacks provide extra"
+      - "&7storage that you can access"
+      - "&7anywhere, anytime!"
+
+  upgrade-button:
+    name: "&aUpgrade Size"
+    lore:
+      - "&7Current: &f%current_tier% &7(&e%current_size% slots&7)"
+      - "&7Next: &f%next_tier% &7(&e%next_size% slots&7)"
+      - ""
+      - "&eCost: &a$%cost%"
+      - ""
+      - "&eClick to upgrade!"
+
+  unlock-button:
+    name: "&aUnlock Slot"
+    lore:
+      - "&7Unlock this backpack slot"
+      - "&7to store another backpack!"
+      - ""
+      - "&eCost: &a$%cost%"
+      - ""
+      - "&eClick to unlock!"
+
+# Fullness bar for GUI
+fullness-bar:
+  empty: "&8[----------]"
+  10: "&c[&a█&8---------]"
+  20: "&c[&a██&8--------]"
+  30: "&6[&a███&8-------]"
+  40: "&6[&a████&8------]"
+  50: "&e[&a█████&8-----]"
+  60: "&e[&a██████&8----]"
+  70: "&2[&a███████&8---]"
+  80: "&2[&a████████&8--]"
+  90: "&a[&a█████████&8-]"
+  100: "&a[&a██████████&a]"
+
+# Command help
+commands:
+  help:
+    - "&8&m                                   "
+    - "&6&lEcoBackpack Commands"
+    - "&8&m                                   "
+    - "&e/backpack &7- Open backpack menu"
+    - "&e/backpack help &7- Show this help"
+    - "&e/bp &7- Alias for /backpack"
+    - ""
+    - "&6&lAdmin Commands"
+    - "&e/backpack give <player> <slot> &7- Give slot access"
+    - "&e/backpack remove <player> <slot> &7- Remove slot access"
+    - "&e/backpack clear <player> <slot> &7- Clear backpack contents"
+    - "&e/backpack reload &7- Reload configuration"
+    - "&8&m                                   "

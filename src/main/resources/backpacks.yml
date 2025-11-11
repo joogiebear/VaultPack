@@ -1,0 +1,198 @@
+# ============================================
+#        VaultPack - Backpack Definitions
+# ============================================
+# Define all your backpack types in one clean file!
+# v1.0.0
+# ============================================
+
+backpacks:
+  # ========== SMALL BACKPACK (Tier 1) ==========
+  small:
+    display-name: "&aSmall Backpack"
+    rarity: "&aUncommon"
+    tier: small
+    size: 9
+    rows: 1
+
+    # Item appearance
+    material: PLAYER_HEAD
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjI2ZTAzMTg2MDI0YzRiZDRjYjQ0NGY4YzYwNzUxZTQ4ODgzOTNhYjE1NGY0YTgzNTcxNDQwMWRkNDM4YTM0MiJ9fX0="
+    custom-model-data: 0
+    glow: false
+
+    # Crafting recipe (3x3 shaped)
+    # Format: "material amount" or just "material" for 1
+    # Use "" for empty slots
+    recipe:
+      - leather 10
+      - leather 10
+      - leather 10
+      - leather 10
+      - ""
+      - leather 10
+      - leather 10
+      - leather 10
+      - leather 10
+
+    # Permissions
+    crafting-permission: "vaultpack.craft.small"
+
+    # Lore (supports placeholders: %tier%, %size%, %used%, %rows%)
+    lore:
+      - ""
+      - "&7Rarity: &aUncommon"
+      - "&7Tier: &a%tier%"
+      - "&7Capacity: &f%used%/%size% items"
+      - ""
+      - "&6Right-click to open"
+      - "&7Drag into backpack menu to store"
+
+  # ========== MEDIUM BACKPACK (Tier 2) ==========
+  medium:
+    display-name: "&9Medium Backpack"
+    rarity: "&9Rare"
+    tier: medium
+    size: 18
+    rows: 2
+
+    material: PLAYER_HEAD
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjI2ZTAzMTg2MDI0YzRiZDRjYjQ0NGY4YzYwNzUxZTQ4ODgzOTNhYjE1NGY0YTgzNTcxNDQwMWRkNDM4YTM0MiJ9fX0="
+    custom-model-data: 0
+    glow: true
+
+    # Requires small backpack to craft
+    recipe:
+      - leather 64
+      - leather 64
+      - leather 64
+      - leather 64
+      - vaultpack:small
+      - leather 64
+      - leather 64
+      - leather 64
+      - leather 64
+
+    upgrade-from: small
+    crafting-permission: "vaultpack.craft.medium"
+
+    lore:
+      - ""
+      - "&7Rarity: &9Rare"
+      - "&7Tier: &9%tier%"
+      - "&7Capacity: &f%used%/%size% items"
+      - ""
+      - "&6Right-click to open"
+      - "&7Drag into backpack menu to store"
+
+  # ========== LARGE BACKPACK (Tier 3) ==========
+  large:
+    display-name: "&5Large Backpack"
+    rarity: "&5Epic"
+    tier: large
+    size: 27
+    rows: 3
+
+    material: PLAYER_HEAD
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjI2ZTAzMTg2MDI0YzRiZDRjYjQ0NGY4YzYwNzUxZTQ4ODgzOTNhYjE1NGY0YTgzNTcxNDQwMWRkNDM4YTM0MiJ9fX0="
+    custom-model-data: 0
+    glow: true
+
+    # Requires EcoItems custom items
+    recipe:
+      - ecoitems:enchanted_leather 6
+      - ecoitems:enchanted_leather 6
+      - ecoitems:enchanted_leather 6
+      - ecoitems:enchanted_leather 6
+      - vaultpack:medium
+      - ecoitems:enchanted_leather 6
+      - ecoitems:enchanted_leather 6
+      - ecoitems:enchanted_leather 6
+      - ecoitems:enchanted_leather 6
+
+    upgrade-from: medium
+    crafting-permission: "vaultpack.craft.large"
+
+    lore:
+      - ""
+      - "&7Rarity: &5Epic"
+      - "&7Tier: &5%tier%"
+      - "&7Capacity: &f%used%/%size% items"
+      - ""
+      - "&6Right-click to open"
+      - "&7Drag into backpack menu to store"
+
+  # ========== GREATER BACKPACK (Tier 4) ==========
+  greater:
+    display-name: "&b&lGreater Backpack"
+    rarity: "&b&lCelestial"
+    tier: greater
+    size: 36
+    rows: 4
+
+    material: PLAYER_HEAD
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjI2ZTAzMTg2MDI0YzRiZDRjYjQ0NGY4YzYwNzUxZTQ4ODgzOTNhYjE1NGY0YTgzNTcxNDQwMWRkNDM4YTM0MiJ9fX0="
+    custom-model-data: 1
+    glow: true
+
+    # Requires EcoItems custom items
+    recipe:
+      - ecoitems:enchanted_leather 12
+      - ecoitems:enchanted_leather 12
+      - ecoitems:enchanted_leather 12
+      - ecoitems:enchanted_leather 12
+      - vaultpack:large
+      - ecoitems:enchanted_leather 12
+      - ecoitems:enchanted_leather 12
+      - ecoitems:enchanted_leather 12
+      - ecoitems:enchanted_leather 12
+
+    upgrade-from: large
+    crafting-permission: "vaultpack.craft.greater"
+
+    lore:
+      - ""
+      - "&7Rarity: &b&lCelestial"
+      - "&7Tier: &b&l%tier%"
+      - "&7Capacity: &f%used%/%size% items"
+      - ""
+      - "&6Right-click to open"
+      - "&7Drag into backpack menu to store"
+
+  # ========== JUMBO BACKPACK (Tier 5) ==========
+  jumbo:
+    display-name: "&6&lJumbo Backpack"
+    rarity: "&6&lLegendary"
+    tier: jumbo
+    size: 45
+    rows: 5
+
+    material: PLAYER_HEAD
+    texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjI2ZTAzMTg2MDI0YzRiZDRjYjQ0NGY4YzYwNzUxZTQ4ODgzOTNhYjE1NGY0YTgzNTcxNDQwMWRkNDM4YTM0MiJ9fX0="
+    custom-model-data: 2
+    glow: true
+
+    # Requires EcoItems upgrade token
+    recipe:
+      - ""
+      - ecoitems:jumbo_backpack_upgrade
+      - ""
+      - ""
+      - vaultpack:greater
+      - ""
+      - ""
+      - ""
+      - ""
+
+    upgrade-from: greater
+    crafting-permission: "vaultpack.craft.jumbo"
+
+    lore:
+      - ""
+      - "&7Rarity: &6&lLegendary"
+      - "&7Tier: &6&l%tier%"
+      - "&7Capacity: &f%used%/%size% items"
+      - ""
+      - "&6Right-click to open"
+      - "&7Drag into backpack menu to store"
+      - ""
+      - "&8The ultimate storage solution!"

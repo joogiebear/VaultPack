@@ -1,0 +1,156 @@
+# ============================================
+# VaultPack - Ender Chest Page Layout
+# ============================================
+# This controls the layout of individual ender pages
+# Admins can fully customize the look and feel!
+#
+# Slot Reference (6 rows = 54 slots):
+#   Row 1: [ 0] [ 1] [ 2] [ 3] [ 4] [ 5] [ 6] [ 7] [ 8]
+#   Row 2: [ 9] [10] [11] [12] [13] [14] [15] [16] [17]
+#   Row 3: [18] [19] [20] [21] [22] [23] [24] [25] [26]
+#   Row 4: [27] [28] [29] [30] [31] [32] [33] [34] [35]
+#   Row 5: [36] [37] [38] [39] [40] [41] [42] [43] [44]
+#   Row 6: [45] [46] [47] [48] [49] [50] [51] [52] [53]
+# ============================================
+
+# Dynamic title with page number
+title: "&5&l⬢ Ender Page %page% ⬢"
+rows: 6
+
+# ========== STORAGE AREA ==========
+# Rows 1-5 (slots 0-44) are for item storage = 45 slots
+storage-area:
+  slots: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+
+# ========== BORDER (Optional) ==========
+# Add a decorative border around the storage
+border:
+  enabled: true
+  slots: [45, 46, 47, 48, 50, 51, 52, 53]
+  item: purple_stained_glass_pane
+  name: " "
+
+# ========== NAVIGATION ROW (Row 6) ==========
+navigation:
+  # Back button (slot 45 = row 6, column 1)
+  back:
+    slot: 45
+    item: arrow
+    name: "&fBack"
+    lore:
+      - "&7Return to page selector"
+    click-action: open_menu
+    menu: enderchest
+
+  # Previous page (slot 47 = row 6, column 3)
+  previous:
+    slot: 47
+    item: arrow
+    name: "&f← Page %prev_page%"
+    lore:
+      - "&7Go to previous page"
+      - ""
+      - "&7Page %prev_page%: &a%prev_items% items"
+    click-action: open_previous_page
+    hide-on-first-page: true
+
+  # Info display (slot 49 = row 6, column 5 - center)
+  info:
+    slot: 49
+    item: ender_eye
+    name: "&5Page %page% Info"
+    lore:
+      - ""
+      - "&7Current Page: &f%page%&7/&f9"
+      - "&7Items: &a%used%&7/&f45"
+      - "&7Fill: %fill_bar%"
+      - ""
+      - "&dTotal Pages Unlocked: &f%total_unlocked_pages%"
+      - "&dTotal Ender Items: &a%total_ender_items%"
+
+  # Next page (slot 51 = row 6, column 7)
+  next:
+    slot: 51
+    item: arrow
+    name: "&fPage %next_page% →"
+    lore:
+      - "&7Go to next page"
+      - ""
+      - "&7Page %next_page%: &a%next_items% items"
+    click-action: open_next_page
+    hide-on-last-page: true
+
+  # Close button (slot 53 = row 6, column 9)
+  close:
+    slot: 53
+    item: barrier
+    name: "&cClose"
+    click-action: close_inventory
+
+# ========== ADVANCED: PER-PAGE THEMES ==========
+# Make each page look unique! (Optional)
+per-page-themes:
+  enabled: false
+
+  themes:
+    # Page 1 - Starter theme (blue)
+    1:
+      border-material: light_blue_stained_glass_pane
+      title-color: "&b"
+      title-suffix: " &8[Starter]"
+
+    # Page 2 - Common theme (green)
+    2:
+      border-material: lime_stained_glass_pane
+      title-color: "&a"
+      title-suffix: " &8[Common]"
+
+    # Page 3 - Uncommon theme (yellow)
+    3:
+      border-material: yellow_stained_glass_pane
+      title-color: "&e"
+      title-suffix: " &8[Uncommon]"
+
+    # Page 4 - Rare theme (blue)
+    4:
+      border-material: blue_stained_glass_pane
+      title-color: "&9"
+      title-suffix: " &8[Rare]"
+
+    # Page 5 - Epic theme (purple)
+    5:
+      border-material: purple_stained_glass_pane
+      title-color: "&5"
+      title-suffix: " &8[Epic]"
+
+    # Page 6 - Legendary theme (gold)
+    6:
+      border-material: orange_stained_glass_pane
+      title-color: "&6"
+      title-suffix: " &8[Legendary]"
+
+    # Page 7 - Mythic theme (red)
+    7:
+      border-material: red_stained_glass_pane
+      title-color: "&c"
+      title-suffix: " &8[Mythic]"
+
+    # Page 8 - Divine theme (white)
+    8:
+      border-material: white_stained_glass_pane
+      title-color: "&f"
+      title-suffix: " &8[Divine]"
+
+    # Page 9 - Ultimate theme (rainbow/magenta)
+    9:
+      border-material: magenta_stained_glass_pane
+      title-color: "&d"
+      title-suffix: " &8[Ultimate]"
+
+# ========== SOUNDS ==========
+sounds:
+  open: BLOCK_ENDER_CHEST_OPEN
+  close: BLOCK_ENDER_CHEST_CLOSE
+  place-item: ENTITY_ITEM_PICKUP
+  take-item: ENTITY_ITEM_PICKUP
+  page-change: UI_BUTTON_CLICK

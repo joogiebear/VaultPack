@@ -1,0 +1,119 @@
+name: VaultPack
+version: '${version}'
+main: com.vaultpack.VaultPackPlugin
+api-version: '1.21'
+author: Joogiebear
+description: Multi-backpack storage system with vault integration
+website: https://discord.gg/joogiebear
+
+depend: []
+softdepend:
+  - Vault
+  - PlaceholderAPI
+  - EcoItems
+
+commands:
+  backpack:
+    description: Open the backpack menu or specific backpack slot
+    usage: /backpack [slot|help|give|remove|clear|reload]
+    aliases: [bp, bag, bags]
+    permission: vaultpack.use
+
+  enderchest:
+    description: Open your ender chest pages
+    usage: /enderchest [page]
+    aliases: [ec, echest]
+    permission: vaultpack.use
+
+  storage:
+    description: Open the unified storage menu
+    usage: /storage
+    aliases: [vault, st]
+    permission: vaultpack.use
+
+  vaultpack:
+    description: Internal backpack commands
+    usage: /vaultpack <open|remove|upgrade|unlock> <slot>
+    permission: vaultpack.use
+
+permissions:
+  vaultpack.use:
+    description: Allows using the backpack system
+    default: true
+
+  vaultpack.admin:
+    description: Allows admin commands
+    default: op
+    children:
+      vaultpack.use: true
+      vaultpack.reload: true
+      vaultpack.give: true
+      vaultpack.remove: true
+      vaultpack.clear: true
+
+  vaultpack.bypass.cost:
+    description: Bypass all economy costs
+    default: op
+
+  vaultpack.slots.*:
+    description: Access to all backpack slots
+    default: false
+    children:
+      vaultpack.slots.1: true
+      vaultpack.slots.2: true
+      vaultpack.slots.3: true
+      vaultpack.slots.4: true
+      vaultpack.slots.5: true
+      vaultpack.slots.6: true
+      vaultpack.slots.7: true
+      vaultpack.slots.8: true
+      vaultpack.slots.9: true
+      vaultpack.slots.10: true
+      vaultpack.slots.11: true
+      vaultpack.slots.12: true
+      vaultpack.slots.13: true
+      vaultpack.slots.14: true
+      vaultpack.slots.15: true
+      vaultpack.slots.16: true
+      vaultpack.slots.17: true
+      vaultpack.slots.18: true
+
+  vaultpack.craft.*:
+    description: Access to craft all backpacks
+    default: true
+    children:
+      vaultpack.craft.small: true
+      vaultpack.craft.medium: true
+      vaultpack.craft.large: true
+      vaultpack.craft.greater: true
+      vaultpack.craft.jumbo: true
+
+  vaultpack.reload:
+    description: Reload plugin configuration
+    default: op
+
+  vaultpack.give:
+    description: Give players backpack slot access
+    default: op
+
+  vaultpack.remove:
+    description: Remove players backpack slot access
+    default: op
+
+  vaultpack.clear:
+    description: Clear player backpack contents
+    default: op
+
+  vaultpack.enderchest.*:
+    description: Access to all ender chest pages
+    default: false
+    children:
+      vaultpack.enderchest.page.1: true
+      vaultpack.enderchest.page.2: true
+      vaultpack.enderchest.page.3: true
+      vaultpack.enderchest.page.4: true
+      vaultpack.enderchest.page.5: true
+      vaultpack.enderchest.page.6: true
+      vaultpack.enderchest.page.7: true
+      vaultpack.enderchest.page.8: true
+      vaultpack.enderchest.page.9: true
