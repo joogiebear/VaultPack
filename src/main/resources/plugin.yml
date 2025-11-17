@@ -4,12 +4,13 @@ main: com.vaultpack.VaultPackPlugin
 api-version: '1.21'
 folia-supported: true
 author: Joogiebear
-description: Multi-backpack storage system with vault integration - Compatible with Paper 1.21.4+ and Folia
+description: Multi-backpack storage system with Vault/VaultUnlocked integration - Compatible with Paper 1.21.4+ and Folia
 website: https://discord.gg/joogiebear
 
 depend: []
 softdepend:
   - Vault
+  - VaultUnlocked
   - PlaceholderAPI
   - EcoItems
 
