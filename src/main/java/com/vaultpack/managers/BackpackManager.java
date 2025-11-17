@@ -127,6 +127,17 @@ public class BackpackManager {
         inventory.setItem(1, createButton(org.bukkit.Material.CHEST, "&e&lAll Backpacks",
             "&7Return to backpack menu"));
 
+        // Slots 2, 3, 4: Spacer/filler to prevent item placement
+        ItemStack spacer = new ItemStack(org.bukkit.Material.BLACK_STAINED_GLASS_PANE);
+        org.bukkit.inventory.meta.ItemMeta spacerMeta = spacer.getItemMeta();
+        if (spacerMeta != null) {
+            spacerMeta.setDisplayName(" ");
+            spacer.setItemMeta(spacerMeta);
+        }
+        inventory.setItem(2, spacer);
+        inventory.setItem(3, spacer);
+        inventory.setItem(4, spacer);
+
         // Find first and last backpack slots
         int firstSlot = -1;
         int lastSlot = -1;
