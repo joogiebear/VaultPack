@@ -93,7 +93,7 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "VaultPack");
         sender.sendMessage(ChatColor.GRAY + "Version: " + ChatColor.WHITE + plugin.getDescription().getVersion());
         sender.sendMessage(ChatColor.GRAY + "Author: " + ChatColor.WHITE + "VaultPack Team");
-        sender.sendMessage(ChatColor.GRAY + "Vault: " + (plugin.isVaultEnabled() ? ChatColor.GREEN + "✓" : ChatColor.RED + "✗"));
+        sender.sendMessage(ChatColor.GRAY + "Vault/VaultUnlocked: " + (plugin.isVaultEnabled() ? ChatColor.GREEN + "✓" : ChatColor.RED + "✗"));
         sender.sendMessage(ChatColor.GRAY + "PlaceholderAPI: " + (plugin.isPlaceholderAPIEnabled() ? ChatColor.GREEN + "✓" : ChatColor.RED + "✗"));
         sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------");
         return true;

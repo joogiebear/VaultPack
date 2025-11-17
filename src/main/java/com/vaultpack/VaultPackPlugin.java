@@ -63,7 +63,7 @@ public class VaultPackPlugin extends JavaPlugin {
         dataManager.loadAllData();
 
         logger.info("VaultPack plugin enabled successfully!");
-        logger.info("Vault: " + (vaultEnabled ? "✓" : "✗"));
+        logger.info("Vault/VaultUnlocked: " + (vaultEnabled ? "✓" : "✗"));
         logger.info("PlaceholderAPI: " + (placeholderAPIEnabled ? "✓" : "✗"));
     }
 
@@ -120,8 +120,13 @@ public class VaultPackPlugin extends JavaPlugin {
     }
 
     private void setupVault() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            logger.warning("Vault not found! Economy features will be disabled.");
+        // Check for both Vault and VaultUnlocked (modern fork)
+        boolean hasVault = getServer().getPluginManager().getPlugin("Vault") != null;
+        boolean hasVaultUnlocked = getServer().getPluginManager().getPlugin("VaultUnlocked") != null;
+
+        if (!hasVault && !hasVaultUnlocked) {
+            logger.warning("Vault/VaultUnlocked not found! Economy features will be disabled.");
+            logger.warning("Install Vault or VaultUnlocked along with an economy plugin (e.g., EssentialsX)");
             vaultEnabled = false;
             return;
         }
@@ -129,13 +134,17 @@ public class VaultPackPlugin extends JavaPlugin {
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         if (rsp == null) {
             logger.warning("No economy plugin found! Economy features will be disabled.");
+            logger.warning("Install an economy plugin like EssentialsX, CMI, or TheNewEconomy");
             vaultEnabled = false;
             return;
         }
 
         economy = rsp.getProvider();
         vaultEnabled = true;
-        logger.info("Vault hooked successfully!");
+
+        // Log which variant we detected
+        String vaultVariant = hasVaultUnlocked ? "VaultUnlocked" : "Vault";
+        logger.info(vaultVariant + " hooked successfully with " + economy.getName() + "!");
     }
 
     private void setupPlaceholderAPI() {
