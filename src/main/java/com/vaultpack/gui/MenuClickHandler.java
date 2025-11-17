@@ -102,11 +102,12 @@ public class MenuClickHandler implements Listener {
                     // Try to unlock the page
                     handleEnderPageUnlock(player, pageNumber);
                     // Reopen storage menu after unlock attempt to show updated state
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    // Use player scheduler for Folia compatibility
+                    player.getScheduler().execute(plugin, () -> {
                         if (player.isOnline()) {
                             new com.vaultpack.gui.StorageMenuGUI(plugin).open(player);
                         }
-                    }, 3L); // Small delay to let messages show
+                    }, null, 3L); // Small delay to let messages show
                 } else {
                     // Page is unlocked, open it
                     plugin.getEnderChestManager().openEnderPage(player, pageNumber);
@@ -132,11 +133,12 @@ public class MenuClickHandler implements Listener {
                     // Try to unlock the slot
                     plugin.getBackpackManager().unlockSlot(player, slotNumber);
                     // Reopen storage menu after unlock attempt to show updated state
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    // Use player scheduler for Folia compatibility
+                    player.getScheduler().execute(plugin, () -> {
                         if (player.isOnline()) {
                             new com.vaultpack.gui.StorageMenuGUI(plugin).open(player);
                         }
-                    }, 3L); // Small delay to let messages show
+                    }, null, 3L); // Small delay to let messages show
                 } else {
                     // Slot is unlocked
                     com.vaultpack.models.Backpack backpack = data.getBackpack(slotNumber);
@@ -259,12 +261,12 @@ public class MenuClickHandler implements Listener {
             // Remove item from cursor
             event.setCursor(null);
 
-            // Refresh menu
-            org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // Refresh menu (use player scheduler for Folia compatibility)
+            player.getScheduler().execute(plugin, () -> {
                 if (player.isOnline()) {
                     new com.vaultpack.gui.StorageMenuGUI(plugin).open(player);
                 }
-            }, 1L);
+            }, null, 1L);
 
             player.sendMessage(ChatColor.GREEN + "Placed " + ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()) + ChatColor.GREEN + " in slot #" + slotNumber + "!");
             playSound(player, "ENTITY_ITEM_PICKUP");
@@ -321,21 +323,23 @@ public class MenuClickHandler implements Listener {
             data.setBackpack(slotNumber, null);
             plugin.getDataManager().savePlayerData(player.getUniqueId());
 
-            // Give backpack item to player
-            java.util.HashMap<Integer, org.bukkit.inventory.ItemStack> overflow = player.getInventory().addItem(backpackItem);
+            // Give backpack item to player (use player scheduler for Folia compatibility)
+            player.getScheduler().execute(plugin, () -> {
+                java.util.HashMap<Integer, org.bukkit.inventory.ItemStack> overflow = player.getInventory().addItem(backpackItem);
 
-            if (!overflow.isEmpty()) {
-                // Inventory full - drop at player location
-                player.getWorld().dropItem(player.getLocation(), backpackItem);
-                player.sendMessage(ChatColor.YELLOW + "Your inventory is full! Backpack dropped at your feet.");
-            }
+                if (!overflow.isEmpty()) {
+                    // Inventory full - drop at player location
+                    player.getWorld().dropItem(player.getLocation(), backpackItem);
+                    player.sendMessage(ChatColor.YELLOW + "Your inventory is full! Backpack dropped at your feet.");
+                }
+            }, null, 1L);
 
-            // Refresh menu
-            org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // Refresh menu (use player scheduler for Folia compatibility)
+            player.getScheduler().execute(plugin, () -> {
                 if (player.isOnline()) {
                     new com.vaultpack.gui.StorageMenuGUI(plugin).open(player);
                 }
-            }, 1L);
+            }, null, 1L);
 
             player.sendMessage(ChatColor.GREEN + "Removed " + ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()) + ChatColor.GREEN + " from slot #" + slotNumber + "!");
             playSound(player, "ENTITY_ITEM_PICKUP");

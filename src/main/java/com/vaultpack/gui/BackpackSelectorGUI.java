@@ -376,12 +376,12 @@ public class BackpackSelectorGUI {
             // Remove item from cursor
             player.setItemOnCursor(null);
 
-            // Refresh menu
-            org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // Refresh menu (use player scheduler for Folia compatibility)
+            player.getScheduler().execute(plugin, () -> {
                 if (player.isOnline()) {
                     open(player);
                 }
-            }, 1L);
+            }, null, 1L);
 
             player.sendMessage(ChatColor.GREEN + "Placed " + ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()) + ChatColor.GREEN + " in slot #" + slotNumber + "!");
             playSound(player, "ENTITY_ITEM_PICKUP");
