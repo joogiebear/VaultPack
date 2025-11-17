@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class BackpackDataManager {
@@ -29,7 +30,7 @@ public class BackpackDataManager {
         this.plugin = plugin;
         this.dataFile = new File(plugin.getDataFolder(), "playerdata.yml");
         this.backupFolder = new File(plugin.getDataFolder(), "backups");
-        this.playerDataCache = new HashMap<>();
+        this.playerDataCache = new ConcurrentHashMap<>();
 
         // Create data file if it doesn't exist
         if (!dataFile.exists()) {
@@ -270,7 +271,9 @@ public class BackpackDataManager {
     }
 
     private void saveDataFileAsync() {
-        org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, this::saveDataFile);
+        // Use global region scheduler for async file I/O operations
+        // This is safe as we're not accessing world/entity state
+        plugin.getServer().getAsyncScheduler().runNow(plugin, task -> saveDataFile());
     }
 
     public void saveAllData() {
@@ -385,11 +388,12 @@ public class BackpackDataManager {
      * Schedule automatic backups every 30 minutes
      */
     private void scheduleAutoBackup() {
-        // Run backup every 30 minutes (36000 ticks)
-        org.bukkit.Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+        // Run backup every 30 minutes using global region scheduler
+        // This is safe as backups only do file I/O operations
+        plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, task -> {
             plugin.getLogger().info("Running automatic backup...");
             createBackup();
-        }, 36000L, 36000L); // 30 minutes = 36000 ticks
+        }, 1800, 1800); // 30 minutes = 1800 seconds
     }
 
     /**

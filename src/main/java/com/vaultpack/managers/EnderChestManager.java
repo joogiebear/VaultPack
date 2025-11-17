@@ -67,14 +67,19 @@ public class EnderChestManager {
             }
         }
 
-        // Open inventory
-        player.openInventory(inventory);
-        page.setActiveInventory(inventory);
-        openEnderPages.put(player.getUniqueId(), pageNumber);
+        // Open inventory with error handling
+        try {
+            player.openInventory(inventory);
+            page.setActiveInventory(inventory);
+            openEnderPages.put(player.getUniqueId(), pageNumber);
 
-        // Send action bar feedback
-        com.vaultpack.utils.ActionBarUtil.sendInfo(player,
-            "Ender Chest - Page " + pageNumber + " &7(" + page.getUsedSlots() + "/45)");
+            // Send action bar feedback
+            com.vaultpack.utils.ActionBarUtil.sendInfo(player,
+                "Ender Chest - Page " + pageNumber + " &7(" + page.getUsedSlots() + "/45)");
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to open ender page for " + player.getName() + ": " + e.getMessage());
+            player.sendMessage(ChatColor.RED + "Failed to open ender chest page. Please try again.");
+        }
     }
 
     /**

@@ -97,22 +97,24 @@ public class EnderChestListener implements Listener {
 
             case 1: // Back to all pages
                 player.closeInventory();
-                org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                // Use player scheduler for Folia compatibility
+                player.getScheduler().execute(plugin, () -> {
                     if (player.isOnline()) {
                         new com.vaultpack.gui.StorageMenuGUI(plugin).open(player);
                     }
-                }, 1L);
+                }, null, 1L);
                 break;
 
             case 5: // First page
                 int firstPage = findFirstPage(data);
                 if (firstPage != -1 && firstPage != currentPage) {
                     player.closeInventory();
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    // Use player scheduler for Folia compatibility
+                    player.getScheduler().execute(plugin, () -> {
                         if (player.isOnline()) {
                             plugin.getEnderChestManager().openEnderPage(player, firstPage);
                         }
-                    }, 1L);
+                    }, null, 1L);
                 } else {
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "Already at the first page!");
                 }
@@ -122,11 +124,12 @@ public class EnderChestListener implements Listener {
                 int previousPage = findPreviousPage(data, currentPage);
                 if (previousPage != -1) {
                     player.closeInventory();
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    // Use player scheduler for Folia compatibility
+                    player.getScheduler().execute(plugin, () -> {
                         if (player.isOnline()) {
                             plugin.getEnderChestManager().openEnderPage(player, previousPage);
                         }
-                    }, 1L);
+                    }, null, 1L);
                 } else {
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "No previous page!");
                 }
@@ -136,11 +139,12 @@ public class EnderChestListener implements Listener {
                 int nextPage = findNextPage(data, currentPage);
                 if (nextPage != -1) {
                     player.closeInventory();
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    // Use player scheduler for Folia compatibility
+                    player.getScheduler().execute(plugin, () -> {
                         if (player.isOnline()) {
                             plugin.getEnderChestManager().openEnderPage(player, nextPage);
                         }
-                    }, 1L);
+                    }, null, 1L);
                 } else {
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "No next page!");
                 }
@@ -150,11 +154,12 @@ public class EnderChestListener implements Listener {
                 int lastPage = findLastPage(data);
                 if (lastPage != -1 && lastPage != currentPage) {
                     player.closeInventory();
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    // Use player scheduler for Folia compatibility
+                    player.getScheduler().execute(plugin, () -> {
                         if (player.isOnline()) {
                             plugin.getEnderChestManager().openEnderPage(player, lastPage);
                         }
-                    }, 1L);
+                    }, null, 1L);
                 } else {
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "Already at the last page!");
                 }

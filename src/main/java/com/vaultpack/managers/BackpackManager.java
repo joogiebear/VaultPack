@@ -29,6 +29,12 @@ public class BackpackManager {
         this.plugin = plugin;
         this.openBackpacks = new HashMap<>();
         this.pendingRemovals = new HashMap<>();
+
+        // Schedule periodic cleanup of expired pending removals (every 10 seconds)
+        // Use global region scheduler for this non-player-specific task
+        plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, task -> {
+            pendingRemovals.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        }, 200, 200); // 10 seconds in both Paper and Folia
     }
 
     private static class RemovalConfirmation {
@@ -46,6 +52,12 @@ public class BackpackManager {
     }
 
     public void openBackpack(Player player, int slotNumber) {
+        // Input validation
+        if (slotNumber < 1 || slotNumber > 18) {
+            player.sendMessage(ChatColor.RED + "Invalid slot number! Must be between 1 and 18.");
+            return;
+        }
+
         PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         // Check if slot is unlocked
@@ -84,15 +96,20 @@ public class BackpackManager {
             }
         }
 
-        // Open inventory
-        player.openInventory(inventory);
-        backpack.setActiveInventory(inventory);
-        openBackpacks.put(player.getUniqueId(), slotNumber);
+        // Open inventory with error handling
+        try {
+            player.openInventory(inventory);
+            backpack.setActiveInventory(inventory);
+            openBackpacks.put(player.getUniqueId(), slotNumber);
 
-        // Send action bar feedback
-        com.vaultpack.utils.ActionBarUtil.sendInfo(player,
-            "Backpack #" + slotNumber + " | " + backpack.getTier().getColoredDisplayName() +
-            " &7(" + backpack.getUsedSlots() + "/" + backpack.getSize() + ")");
+            // Send action bar feedback
+            com.vaultpack.utils.ActionBarUtil.sendInfo(player,
+                "Backpack #" + slotNumber + " | " + backpack.getTier().getColoredDisplayName() +
+                " &7(" + backpack.getUsedSlots() + "/" + backpack.getSize() + ")");
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to open backpack for " + player.getName() + ": " + e.getMessage());
+            player.sendMessage(ChatColor.RED + "Failed to open backpack. Please try again.");
+        }
     }
 
     private void addNavigationHeader(Inventory inventory, Player player, int currentSlot, PlayerBackpackData data) {
@@ -300,12 +317,15 @@ public class BackpackManager {
                 player.closeInventory();
             }
 
-            // Drop all items on the ground
+            // Drop all items on the ground (use player scheduler for world operations)
             Map<Integer, ItemStack> contents = backpack.getContents();
             int itemCount = 0;
             for (ItemStack item : contents.values()) {
                 if (item != null && item.getType() != org.bukkit.Material.AIR) {
-                    player.getWorld().dropItemNaturally(player.getLocation(), item);
+                    ItemStack finalItem = item;
+                    player.getScheduler().execute(plugin, () -> {
+                        player.getWorld().dropItemNaturally(player.getLocation(), finalItem);
+                    }, null, 1L);
                     itemCount++;
                 }
             }
@@ -712,9 +732,15 @@ public class BackpackManager {
     }
 
     public void closeAllBackpacks() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (isBackpackOpen(player)) {
-                player.closeInventory();
+        // Close backpacks on each player's region thread for Folia compatibility
+        for (UUID uuid : new java.util.HashSet<>(openBackpacks.keySet())) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null && player.isOnline()) {
+                player.getScheduler().execute(plugin, () -> {
+                    if (player.isOnline() && isBackpackOpen(player)) {
+                        player.closeInventory();
+                    }
+                }, null, 1L);
             }
         }
         openBackpacks.clear();
@@ -725,9 +751,13 @@ public class BackpackManager {
         return pending != null && !pending.isExpired() && pending.slotNumber == slotNumber;
     }
 
+    /**
+     * Apply custom texture to skull meta using Paper 1.21.4+ API
+     * No reflection needed - we target Paper 1.21.4+
+     */
     private void applyTexture(org.bukkit.inventory.meta.SkullMeta skullMeta, String texture) {
         try {
-            // Use Bukkit's profile API if available (Paper 1.18.2+)
+            // Use Paper's profile API (available in Paper 1.18.2+, guaranteed in 1.21.4+)
             org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createPlayerProfile(java.util.UUID.randomUUID());
             org.bukkit.profile.PlayerTextures textures = profile.getTextures();
 
@@ -739,26 +769,7 @@ public class BackpackManager {
             profile.setTextures(textures);
             skullMeta.setOwnerProfile(profile);
         } catch (Exception e) {
-            // Fallback to reflection method for older versions
-            try {
-                Class<?> gameProfileClass = Class.forName("com.mojang.authlib.GameProfile");
-                Class<?> propertyClass = Class.forName("com.mojang.authlib.properties.Property");
-
-                Object profile = gameProfileClass.getConstructor(java.util.UUID.class, String.class)
-                        .newInstance(java.util.UUID.randomUUID(), null);
-                Object properties = gameProfileClass.getMethod("getProperties").invoke(profile);
-                Object property = propertyClass.getConstructor(String.class, String.class)
-                        .newInstance("textures", texture);
-
-                properties.getClass().getMethod("put", Object.class, Object.class)
-                        .invoke(properties, "textures", property);
-
-                java.lang.reflect.Field profileField = skullMeta.getClass().getDeclaredField("profile");
-                profileField.setAccessible(true);
-                profileField.set(skullMeta, profile);
-            } catch (Exception ex) {
-                plugin.getLogger().warning("Failed to apply texture: " + ex.getMessage());
-            }
+            plugin.getLogger().warning("Failed to apply texture: " + e.getMessage());
         }
     }
 }
