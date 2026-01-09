@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("io.github.goooler.shadow") version "8.1.8"
+    id("xyz.jpenilla.run-paper") version "2.3.0"
 }
 
 group = "com.vaultpack"
@@ -28,6 +29,12 @@ repositories {
     maven {
         name = "auxilor"
         url = uri("https://repo.auxilor.io/repository/maven-public/")
+    }
+
+    // Phase 1: ACF (Aikar's Command Framework)
+    maven {
+        name = "aikar"
+        url = uri("https://repo.aikar.co/content/groups/aikar/")
     }
 }
 
@@ -60,6 +67,16 @@ dependencies {
     // Phase 3: Adventure API (modern text components)
     // Paper includes Adventure, but we add MiniMessage for advanced formatting
     implementation("net.kyori:adventure-text-minimessage:4.17.0")
+
+    // Phase 1: ACF - Modern command framework
+    implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
+
+    // Phase 1: Lombok - Reduce boilerplate code
+    compileOnly("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+
+    // Phase 1: bStats - Plugin metrics
+    implementation("org.bstats:bstats-bukkit:3.0.2")
 }
 
 java {
@@ -76,6 +93,11 @@ tasks.shadowJar {
     archiveBaseName.set("VaultPack")
     archiveClassifier.set("")
     archiveVersion.set(project.version.toString())
+
+    // Phase 1: Relocate ACF and bStats to avoid conflicts
+    relocate("co.aikar.commands", "com.vaultpack.libs.acf")
+    relocate("co.aikar.locales", "com.vaultpack.libs.locales")
+    relocate("org.bstats", "com.vaultpack.libs.bstats")
 
     // Phase 2: Relocate HikariCP and MySQL to avoid conflicts
     relocate("com.zaxxer.hikari", "com.vaultpack.libs.hikari")
@@ -109,3 +131,23 @@ tasks.build {
 
 // Default task
 defaultTasks("clean", "shadowJar")
+
+// Run-Paper configuration for testing
+tasks.runServer {
+    minecraftVersion("1.21.4")
+
+    // Download soft dependencies for testing
+    downloadPlugins {
+        // Vault (dependency)
+        github("MilkBowl", "Vault", "1.7.3", "Vault.jar")
+
+        // PlaceholderAPI (dependency)
+        hangar("PlaceholderAPI", "2.11.6")
+
+        // LuckPerms (for testing permissions)
+        modrinth("luckperms", "5.4.139")
+    }
+
+    // Use latest Paper build
+    runDirectory.set(file("run"))
+}
