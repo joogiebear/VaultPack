@@ -112,28 +112,15 @@ public class VaultPackCommand extends BaseCommand {
     }
 
     /**
-     * Give a player a backpack item (default amount of 1).
-     * Usage: /vaultpack giveitem <player> <type>
+     * Give a player a backpack item.
+     * Usage: /vaultpack giveitem <player> <type> [amount]
      */
     @Subcommand("giveitem")
     @CommandPermission("vaultpack.admin")
     @Description("Give a player a backpack item")
-    @CommandCompletion("@players @backpackTypes")
-    @Syntax("<player> <type>")
-    public void onGiveItem(CommandSender sender, Player target, String backpackTypeId) {
-        giveBackpackItem(sender, target, backpackTypeId, 1);
-    }
-
-    /**
-     * Give a player a backpack item with specific amount.
-     * Usage: /vaultpack giveitem <player> <type> <amount>
-     */
-    @Subcommand("giveitem")
-    @CommandPermission("vaultpack.admin")
-    @Description("Give a player a backpack item with amount")
-    @CommandCompletion("@players @backpackTypes @nothing")
-    @Syntax("<player> <type> <amount>")
-    public void onGiveItemWithAmount(CommandSender sender, Player target, String backpackTypeId, int amount) {
+    @CommandCompletion("@players @backpackTypes @range:1-64 @nothing")
+    @Syntax("<player> <type> [amount]")
+    public void onGiveItem(CommandSender sender, Player target, String backpackTypeId, @Default("1") Integer amount) {
         giveBackpackItem(sender, target, backpackTypeId, amount);
     }
 
