@@ -159,7 +159,6 @@ public class DataMigrationTool {
             } catch (Exception e) {
                 sender.sendMessage("§c[Error] Migration failed: " + e.getMessage());
                 plugin.getLogger().severe("Migration error: " + e.getMessage());
-                e.printStackTrace();
                 return new MigrationResult(false, 0, 0, e.getMessage());
             }
         });

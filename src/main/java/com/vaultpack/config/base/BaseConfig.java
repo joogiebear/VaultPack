@@ -85,8 +85,7 @@ public abstract class BaseConfig {
         try {
             yaml.save(file);
         } catch (IOException e) {
-            LOGGER.severe("Failed to save config file: " + file.getName());
-            e.printStackTrace();
+            LOGGER.severe("Failed to save config file: " + file.getName() + " - " + e.getMessage());
         }
     }
 
@@ -135,8 +134,7 @@ public abstract class BaseConfig {
                     migrations.get(i).accept(yaml);
                     LOGGER.info("Applied migration step " + (i + 1) + " to " + file.getName());
                 } catch (Exception e) {
-                    LOGGER.severe("Failed to apply migration step " + (i + 1) + " to " + file.getName());
-                    e.printStackTrace();
+                    LOGGER.severe("Failed to apply migration step " + (i + 1) + " to " + file.getName() + " - " + e.getMessage());
                 }
             }
 
@@ -144,8 +142,7 @@ public abstract class BaseConfig {
                 yaml.save(file);
                 LOGGER.info("Migration complete for " + file.getName());
             } catch (IOException e) {
-                LOGGER.severe("Failed to save migrated config: " + file.getName());
-                e.printStackTrace();
+                LOGGER.severe("Failed to save migrated config: " + file.getName() + " - " + e.getMessage());
             }
         }
     }
@@ -179,11 +176,9 @@ public abstract class BaseConfig {
                     }
                 }
             } catch (IllegalAccessException e) {
-                LOGGER.warning("Failed to load field '" + field.getName() + "' from " + file.getName());
-                e.printStackTrace();
+                LOGGER.warning("Failed to load field '" + field.getName() + "' from " + file.getName() + " - " + e.getMessage());
             } catch (ClassCastException e) {
-                LOGGER.warning("Type mismatch for field '" + field.getName() + "' in " + file.getName());
-                e.printStackTrace();
+                LOGGER.warning("Type mismatch for field '" + field.getName() + "' in " + file.getName() + " - " + e.getMessage());
             }
         }
     }
@@ -202,8 +197,7 @@ public abstract class BaseConfig {
                 Object value = field.get(this);
                 yaml.set(key, value);
             } catch (IllegalAccessException e) {
-                LOGGER.warning("Failed to save field '" + field.getName() + "' to " + file.getName());
-                e.printStackTrace();
+                LOGGER.warning("Failed to save field '" + field.getName() + "' to " + file.getName() + " - " + e.getMessage());
             }
         }
     }

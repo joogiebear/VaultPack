@@ -287,7 +287,6 @@ public class MenuClickHandler implements Listener {
         } catch (Exception e) {
             plugin.getMessageManager().send(player, "backpack-place-error", "%error%", e.getMessage());
             plugin.getLogger().warning("Failed to place backpack: " + e.getMessage());
-            e.printStackTrace();
             return true;
         }
     }
@@ -360,7 +359,6 @@ public class MenuClickHandler implements Listener {
         } catch (Exception e) {
             plugin.getMessageManager().send(player, "backpack-remove-error", "%error%", e.getMessage());
             plugin.getLogger().warning("Failed to remove backpack: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 

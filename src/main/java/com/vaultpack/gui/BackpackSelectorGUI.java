@@ -392,7 +392,6 @@ public class BackpackSelectorGUI {
         } catch (Exception e) {
             plugin.getMessageManager().send(player, "backpack-place-error", "%error%", e.getMessage());
             plugin.getLogger().warning("Failed to place backpack: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 

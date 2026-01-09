@@ -70,7 +70,6 @@ public class BackpackTypeManager {
                 loaded++;
             } catch (Exception e) {
                 logger.warning("Failed to load backpack type '" + id + "': " + e.getMessage());
-                e.printStackTrace();
             }
         }
 
@@ -136,7 +135,6 @@ public class BackpackTypeManager {
                 registered++;
             } catch (Exception e) {
                 logger.warning("Failed to register recipe for " + type.getId() + ": " + e.getMessage());
-                e.printStackTrace();
             }
         }
 

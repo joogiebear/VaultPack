@@ -49,7 +49,6 @@ public class PlayerListener implements Listener {
         }).exceptionally(ex -> {
             // Handle loading errors
             plugin.getLogger().severe("Failed to load data for " + player.getName() + ": " + ex.getMessage());
-            ex.printStackTrace();
 
             // Send error message to player
             player.getScheduler().run(plugin, task -> {

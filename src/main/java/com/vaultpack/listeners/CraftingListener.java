@@ -558,7 +558,6 @@ public class CraftingListener implements Listener {
                 } catch (Exception e) {
                     // EcoItems not available or error - fail validation
                     Bukkit.getLogger().warning("[VaultPack] Failed to validate EcoItem '" + parts[1] + "': " + e.getMessage());
-                    e.printStackTrace();
                     return false;
                 }
             } else if (pluginName.equals("vaultpack")) {
