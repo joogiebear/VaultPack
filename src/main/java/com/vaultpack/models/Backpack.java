@@ -1,5 +1,6 @@
 package com.vaultpack.models;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -135,5 +136,69 @@ public class Backpack {
                 ", tier=" + tier +
                 ", used=" + getUsedSlots() + "/" + getSize() +
                 '}';
+    }
+
+    /**
+     * Serialize this backpack to a configuration section.
+     *
+     * @param section The configuration section to serialize to
+     */
+    public void serialize(ConfigurationSection section) {
+        section.set("owner", owner.toString());
+        section.set("slot", slotNumber);
+        section.set("tier", tier.name());
+        section.set("type", backpackTypeId);
+
+        // Serialize contents
+        if (!contents.isEmpty()) {
+            ConfigurationSection contentsSection = section.createSection("contents");
+            for (Map.Entry<Integer, ItemStack> entry : contents.entrySet()) {
+                if (entry.getValue() != null) {
+                    contentsSection.set(String.valueOf(entry.getKey()), entry.getValue());
+                }
+            }
+        }
+    }
+
+    /**
+     * Deserialize a backpack from a configuration section.
+     *
+     * @param section The configuration section to deserialize from
+     * @return The deserialized backpack
+     */
+    public static Backpack deserialize(ConfigurationSection section) {
+        UUID owner = UUID.fromString(section.getString("owner"));
+        int slot = section.getInt("slot");
+        String tierName = section.getString("tier", "SMALL");
+        String typeId = section.getString("type");
+
+        BackpackTier tier;
+        try {
+            tier = BackpackTier.valueOf(tierName);
+        } catch (IllegalArgumentException e) {
+            tier = BackpackTier.SMALL; // Default fallback
+        }
+
+        Backpack backpack = new Backpack(owner, slot, tier, typeId);
+
+        // Deserialize contents
+        ConfigurationSection contentsSection = section.getConfigurationSection("contents");
+        if (contentsSection != null) {
+            Map<Integer, ItemStack> contents = new HashMap<>();
+            for (String key : contentsSection.getKeys(false)) {
+                try {
+                    int slotIndex = Integer.parseInt(key);
+                    ItemStack item = contentsSection.getItemStack(key);
+                    if (item != null) {
+                        contents.put(slotIndex, item);
+                    }
+                } catch (NumberFormatException ignored) {
+                    // Skip invalid slot numbers
+                }
+            }
+            backpack.setContents(contents);
+        }
+
+        return backpack;
     }
 }

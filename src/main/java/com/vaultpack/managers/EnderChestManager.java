@@ -2,7 +2,7 @@ package com.vaultpack.managers;
 
 import com.vaultpack.VaultPackPlugin;
 import com.vaultpack.models.EnderPage;
-import com.vaultpack.models.PlayerBackpackData;
+import com.vaultpack.data.holders.PlayerDataHolder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -31,7 +31,7 @@ public class EnderChestManager {
      * Open a specific ender page for a player
      */
     public void openEnderPage(Player player, int pageNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         // Check if page is unlocked
         if (!data.isEnderPageUnlocked(pageNumber)) {
@@ -97,7 +97,7 @@ public class EnderChestManager {
      * Save ender page contents to data
      */
     private void saveEnderPageContents(Player player, int pageNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         EnderPage page = data.getEnderPage(pageNumber);
 
         if (page != null && page.getActiveInventory() != null) {
@@ -138,7 +138,7 @@ public class EnderChestManager {
      * Create an ender page for a player
      */
     public void createEnderPage(Player player, int pageNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         EnderPage page = new EnderPage(player.getUniqueId(), pageNumber);
         data.setEnderPage(pageNumber, page);
@@ -150,10 +150,10 @@ public class EnderChestManager {
      * Unlock an ender page for a player
      */
     public void unlockEnderPage(Player player, int pageNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         if (data.isEnderPageUnlocked(pageNumber)) {
-            plugin.getMessageManager().send(player, "slot-already-unlocked");
+            plugin.getMessageManager().send(player, "ender-page-already-unlocked", "page", String.valueOf(pageNumber));
             return;
         }
 
@@ -163,7 +163,7 @@ public class EnderChestManager {
             if (player.hasPermission(permission)) {
                 data.unlockEnderPage(pageNumber);
                 plugin.getDataManager().savePlayerData(player.getUniqueId());
-                plugin.getMessageManager().send(player, "slot-unlocked", "%slot%", String.valueOf(pageNumber));
+                plugin.getMessageManager().send(player, "ender-page-unlocked", "page", String.valueOf(pageNumber));
                 return;
             }
         }
@@ -173,23 +173,23 @@ public class EnderChestManager {
             int cost = plugin.getConfigManager().getEnderPageUnlockCost(pageNumber);
 
             if (!plugin.getEconomyManager().hasMoney(player, cost)) {
-                plugin.getMessageManager().send(player, "slot-unlock-fail", "%cost%", String.valueOf(cost));
+                plugin.getMessageManager().send(player, "ender-page-unlock-fail", "cost", String.valueOf(cost));
                 return;
             }
 
             plugin.getEconomyManager().takeMoney(player, cost);
             data.unlockEnderPage(pageNumber);
             plugin.getDataManager().savePlayerData(player.getUniqueId());
-            plugin.getMessageManager().send(player, "slot-unlocked", "%slot%", String.valueOf(pageNumber));
+            plugin.getMessageManager().send(player, "ender-page-unlocked-cost", "page", String.valueOf(pageNumber), "cost", String.valueOf(cost));
         } else {
-            plugin.getMessageManager().send(player, "slot-unlock-no-permission");
+            plugin.getMessageManager().send(player, "ender-page-unlock-no-permission");
         }
     }
 
     /**
      * Add navigation header to ender page inventory
      */
-    private void addNavigationHeader(Inventory inventory, Player player, int currentPage, PlayerBackpackData data) {
+    private void addNavigationHeader(Inventory inventory, Player player, int currentPage, PlayerDataHolder data) {
         // Player head textures
         String firstTexture = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWQ3MDdkYjQ2YTVhY2JmZWJmNjEyMzk1MzZkMjU2NDgxMzRiYjQzYjY1YzE2NzE2YmEzMjljNmRiZjQxMiJ9fX0=";
         String previousTexture = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTVkYTQ4NDcyNzI1ODIyNjViZGFjYTM2NzIzN2M5NjEyMmIxMzlmNGU1OTdmYmM2NjY3ZDNmYjc1ZmVhN2NmNiJ9fX0=";
@@ -294,7 +294,7 @@ public class EnderChestManager {
         return item;
     }
 
-    private int findPreviousPage(PlayerBackpackData data, int currentPage) {
+    private int findPreviousPage(PlayerDataHolder data, int currentPage) {
         for (int i = currentPage - 1; i >= 1; i--) {
             if (data.isEnderPageUnlocked(i)) {
                 return i;
@@ -303,7 +303,7 @@ public class EnderChestManager {
         return -1;
     }
 
-    private int findNextPage(PlayerBackpackData data, int currentPage) {
+    private int findNextPage(PlayerDataHolder data, int currentPage) {
         for (int i = currentPage + 1; i <= 9; i++) {
             if (data.isEnderPageUnlocked(i)) {
                 return i;
@@ -366,7 +366,7 @@ public class EnderChestManager {
      */
     public Map<Integer, Integer> searchEnderPages(Player player, org.bukkit.Material material) {
         Map<Integer, Integer> results = new HashMap<>(); // Page -> Count
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         for (int i = 1; i <= 9; i++) {
             if (!data.isEnderPageUnlocked(i)) continue;

@@ -1,6 +1,6 @@
 package com.vaultpack.managers;
 
-import com.vaultpack.models.PlayerBackpackData;
+import com.vaultpack.data.holders.PlayerDataHolder;
 
 /**
  * Phase 3: Handles backpack navigation logic
@@ -11,7 +11,7 @@ public class NavigationHandler {
     /**
      * Find the first backpack slot that is unlocked and has a backpack
      */
-    public static int findFirstBackpack(PlayerBackpackData data) {
+    public static int findFirstBackpack(PlayerDataHolder data) {
         for (int i = 1; i <= 18; i++) {
             if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
                 return i;
@@ -23,7 +23,7 @@ public class NavigationHandler {
     /**
      * Find the last backpack slot that is unlocked and has a backpack
      */
-    public static int findLastBackpack(PlayerBackpackData data) {
+    public static int findLastBackpack(PlayerDataHolder data) {
         for (int i = 18; i >= 1; i--) {
             if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
                 return i;
@@ -35,7 +35,7 @@ public class NavigationHandler {
     /**
      * Find the previous backpack slot before the current one
      */
-    public static int findPreviousBackpack(PlayerBackpackData data, int currentSlot) {
+    public static int findPreviousBackpack(PlayerDataHolder data, int currentSlot) {
         for (int i = currentSlot - 1; i >= 1; i--) {
             if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
                 return i;
@@ -47,7 +47,7 @@ public class NavigationHandler {
     /**
      * Find the next backpack slot after the current one
      */
-    public static int findNextBackpack(PlayerBackpackData data, int currentSlot) {
+    public static int findNextBackpack(PlayerDataHolder data, int currentSlot) {
         for (int i = currentSlot + 1; i <= 18; i++) {
             if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
                 return i;
@@ -59,21 +59,21 @@ public class NavigationHandler {
     /**
      * Check if there is a previous backpack
      */
-    public static boolean hasPreviousBackpack(PlayerBackpackData data, int currentSlot) {
+    public static boolean hasPreviousBackpack(PlayerDataHolder data, int currentSlot) {
         return findPreviousBackpack(data, currentSlot) != -1;
     }
 
     /**
      * Check if there is a next backpack
      */
-    public static boolean hasNextBackpack(PlayerBackpackData data, int currentSlot) {
+    public static boolean hasNextBackpack(PlayerDataHolder data, int currentSlot) {
         return findNextBackpack(data, currentSlot) != -1;
     }
 
     /**
      * Get the total number of backpacks the player has
      */
-    public static int getTotalBackpacks(PlayerBackpackData data) {
+    public static int getTotalBackpacks(PlayerDataHolder data) {
         int count = 0;
         for (int i = 1; i <= 18; i++) {
             if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
@@ -86,7 +86,7 @@ public class NavigationHandler {
     /**
      * Get the position of current backpack in the sequence (e.g., 3 of 5)
      */
-    public static int getBackpackPosition(PlayerBackpackData data, int currentSlot) {
+    public static int getBackpackPosition(PlayerDataHolder data, int currentSlot) {
         int position = 0;
         for (int i = 1; i <= currentSlot; i++) {
             if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
@@ -99,14 +99,14 @@ public class NavigationHandler {
     /**
      * Check if a slot is the first backpack
      */
-    public static boolean isFirstBackpack(PlayerBackpackData data, int slotNumber) {
+    public static boolean isFirstBackpack(PlayerDataHolder data, int slotNumber) {
         return findFirstBackpack(data) == slotNumber;
     }
 
     /**
      * Check if a slot is the last backpack
      */
-    public static boolean isLastBackpack(PlayerBackpackData data, int slotNumber) {
+    public static boolean isLastBackpack(PlayerDataHolder data, int slotNumber) {
         return findLastBackpack(data) == slotNumber;
     }
 }

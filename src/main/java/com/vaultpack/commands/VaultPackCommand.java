@@ -1,23 +1,26 @@
 package com.vaultpack.commands;
 
+import co.aikar.commands.BaseCommand;
+import co.aikar.commands.annotation.*;
 import com.vaultpack.VaultPackPlugin;
+import com.vaultpack.data.holders.PlayerDataHolder;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Player;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /**
- * Main admin command for VaultPack
- * Usage: /vaultpack <reload|help|version|give|giveitem|list|clear>
+ * ACF-based main admin command for VaultPack.
+ * Handles reload, give, inspect, and other administrative functions.
  */
-public class VaultPackCommand implements CommandExecutor, TabCompleter {
+@CommandAlias("vaultpack|vp")
+@Description("VaultPack administration commands")
+public class VaultPackCommand extends BaseCommand {
 
     private final VaultPackPlugin plugin;
 
@@ -25,71 +28,35 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
         this.plugin = plugin;
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // No args - show help
-        if (args.length == 0) {
-            sendHelp(sender);
-            return true;
-        }
-
-        String subcommand = args[0].toLowerCase();
-
-        switch (subcommand) {
-            case "reload":
-                return handleReload(sender);
-
-            case "help":
-                sendHelp(sender);
-                return true;
-
-            case "version":
-            case "ver":
-                return handleVersion(sender);
-
-            case "give":
-                return handleGive(sender, args);
-
-            case "giveitem":
-                return handleGiveItem(sender, args);
-
-            case "list":
-            case "types":
-                return handleList(sender);
-
-            case "clear":
-                return handleClear(sender, args);
-
-            case "reset":
-                return handleReset(sender, args);
-
-            case "inspect":
-            case "view":
-                return handleInspect(sender, args);
-
-            default:
-                plugin.getMessageManager().send(sender, "admin-unknown-command");
-                return true;
-        }
+    /**
+     * Default command - shows help.
+     * Usage: /vaultpack
+     */
+    @Default
+    @CatchUnknown
+    @Description("Show VaultPack help")
+    public void onDefault(CommandSender sender) {
+        sendHelp(sender);
     }
 
-    private boolean handleReload(CommandSender sender) {
-        if (!sender.hasPermission("vaultpack.admin")) {
-            plugin.getMessageManager().send(sender, "no-permission");
-            return true;
-        }
-
-        plugin.getMessageManager().send(sender, "admin-reload-start");
-        plugin.reload();
-
-        List<String> reloadMessages = plugin.getMessageManager().getMessageList("admin.reload-success");
-        for (String message : reloadMessages) {
-            sender.sendMessage(message.replace("%version%", plugin.getDescription().getVersion()));
-        }
-        return true;
+    /**
+     * Show help information.
+     * Usage: /vaultpack help
+     */
+    @Subcommand("help")
+    @Description("Show VaultPack help")
+    @HelpCommand
+    public void onHelp(CommandSender sender) {
+        sendHelp(sender);
     }
 
-    private boolean handleVersion(CommandSender sender) {
+    /**
+     * Show plugin version and info.
+     * Usage: /vaultpack version
+     */
+    @Subcommand("version|ver|info")
+    @Description("Show plugin version and information")
+    public void onVersion(CommandSender sender) {
         List<String> versionMessages = plugin.getMessageManager().getMessageList("admin.version");
         for (String message : versionMessages) {
             String formatted = message
@@ -98,71 +65,62 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
                 .replace("%papi%", plugin.isPlaceholderAPIEnabled() ? ChatColor.GREEN + "✓" : ChatColor.RED + "✗");
             sender.sendMessage(formatted);
         }
-        return true;
     }
 
-    private boolean handleGive(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("vaultpack.admin")) {
-            plugin.getMessageManager().send(sender, "no-permission");
-            return true;
+    /**
+     * Reload plugin configuration.
+     * Usage: /vaultpack reload
+     */
+    @Subcommand("reload")
+    @CommandPermission("vaultpack.admin")
+    @Description("Reload plugin configuration")
+    public void onReload(CommandSender sender) {
+        plugin.getMessageManager().send(sender, "admin-reload-start");
+        plugin.reload();
+
+        List<String> reloadMessages = plugin.getMessageManager().getMessageList("admin.reload-success");
+        for (String message : reloadMessages) {
+            sender.sendMessage(message.replace("%version%", plugin.getDescription().getVersion()));
         }
-
-        if (args.length < 3) {
-            plugin.getMessageManager().send(sender, "admin.usage.give");
-            return true;
-        }
-
-        Player target = Bukkit.getPlayer(args[1]);
-        if (target == null) {
-            plugin.getMessageManager().send(sender, "player-not-found");
-            return true;
-        }
-
-        try {
-            int slot = Integer.parseInt(args[2]);
-            if (slot < 1 || slot > plugin.getConfigManager().getMaxBackpackSlots()) {
-                plugin.getMessageManager().send(sender, "invalid-slot",
-                    "%max%", String.valueOf(plugin.getConfigManager().getMaxBackpackSlots()));
-                return true;
-            }
-
-            com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(target.getUniqueId());
-            data.unlockSlot(slot);
-            plugin.getDataManager().savePlayerData(target.getUniqueId());
-
-            plugin.getMessageManager().send(sender, "admin-slot-given",
-                "%player%", target.getName(),
-                "%slot%", String.valueOf(slot));
-            plugin.getMessageManager().send(target, "admin-slot-given-target",
-                "%slot%", String.valueOf(slot));
-
-        } catch (NumberFormatException e) {
-            plugin.getMessageManager().send(sender, "invalid-slot", "%max%", "1-18");
-        }
-
-        return true;
     }
 
-    private boolean handleGiveItem(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("vaultpack.admin")) {
-            plugin.getMessageManager().send(sender, "no-permission");
-            return true;
+    /**
+     * Give a player a backpack slot.
+     * Usage: /vaultpack give <player> <slot>
+     */
+    @Subcommand("give")
+    @CommandPermission("vaultpack.admin")
+    @Description("Give a player a backpack slot")
+    @CommandCompletion("@players @backpackSlots")
+    @Syntax("<player> <slot>")
+    public void onGive(CommandSender sender, Player target, int slot) {
+        if (slot < 1 || slot > plugin.getConfigManager().getMaxBackpackSlots()) {
+            plugin.getMessageManager().send(sender, "invalid-slot",
+                "%max%", String.valueOf(plugin.getConfigManager().getMaxBackpackSlots()));
+            return;
         }
 
-        if (args.length < 3) {
-            plugin.getMessageManager().send(sender, "admin.usage.giveitem");
-            plugin.getMessageManager().send(sender, "admin.usage.giveitem-types",
-                "%types%", String.join(", ", plugin.getBackpackTypeManager().getAllBackpackTypes().keySet()));
-            return true;
-        }
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(target.getUniqueId());
+        data.unlockSlot(slot);
+        plugin.getDataManager().savePlayerData(target.getUniqueId());
 
-        Player target = Bukkit.getPlayer(args[1]);
-        if (target == null) {
-            plugin.getMessageManager().send(sender, "player-not-found");
-            return true;
-        }
+        plugin.getMessageManager().send(sender, "admin-slot-given",
+            "%player%", target.getName(),
+            "%slot%", String.valueOf(slot));
+        plugin.getMessageManager().send(target, "admin-slot-given-target",
+            "%slot%", String.valueOf(slot));
+    }
 
-        String backpackTypeId = args[2];
+    /**
+     * Give a player a backpack item.
+     * Usage: /vaultpack giveitem <player> <type> [amount]
+     */
+    @Subcommand("giveitem")
+    @CommandPermission("vaultpack.admin")
+    @Description("Give a player a backpack item")
+    @CommandCompletion("@players @nothing")
+    @Syntax("<player> <type> [amount]")
+    public void onGiveItem(CommandSender sender, Player target, String backpackTypeId, @Default("1") int amount) {
         com.vaultpack.types.BackpackType backpackType = plugin.getBackpackTypeManager().getBackpackType(backpackTypeId);
 
         if (backpackType == null) {
@@ -170,21 +128,16 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
             for (String typeId : plugin.getBackpackTypeManager().getAllBackpackTypes().keySet()) {
                 sender.sendMessage(ChatColor.GRAY + "  - " + typeId);
             }
-            return true;
+            return;
         }
 
-        int amount = 1;
-        if (args.length >= 4) {
-            try {
-                amount = Integer.parseInt(args[3]);
-            } catch (NumberFormatException e) {
-                plugin.getMessageManager().send(sender, "admin-invalid-amount");
-                return true;
-            }
+        if (amount < 1 || amount > 64) {
+            plugin.getMessageManager().send(sender, "admin-invalid-amount");
+            return;
         }
 
-        // Create the backpack item using BackpackTypeManager
-        org.bukkit.inventory.ItemStack backpackItem = plugin.getBackpackTypeManager().createBackpackItem(backpackType);
+        // Create the backpack item
+        ItemStack backpackItem = plugin.getBackpackTypeManager().createBackpackItem(backpackType);
         backpackItem.setAmount(amount);
         target.getInventory().addItem(backpackItem);
 
@@ -195,11 +148,15 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
         plugin.getMessageManager().send(target, "admin-backpack-given-target",
             "%amount%", String.valueOf(amount),
             "%type%", ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()));
-
-        return true;
     }
 
-    private boolean handleList(CommandSender sender) {
+    /**
+     * List all available backpack types.
+     * Usage: /vaultpack list
+     */
+    @Subcommand("list|types")
+    @Description("List all available backpack types")
+    public void onList(CommandSender sender) {
         sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------");
         sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Available Backpack Types");
         sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------");
@@ -212,72 +169,53 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
         }
 
         sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------");
-        return true;
     }
 
-    private boolean handleClear(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("vaultpack.admin")) {
-            plugin.getMessageManager().send(sender, "no-permission");
-            return true;
+    /**
+     * Clear a player's backpack.
+     * Usage: /vaultpack clear <player> <slot>
+     */
+    @Subcommand("clear")
+    @CommandPermission("vaultpack.admin")
+    @Description("Clear a player's backpack")
+    @CommandCompletion("@players @backpackSlots")
+    @Syntax("<player> <slot>")
+    public void onClear(CommandSender sender, Player target, int slot) {
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(target.getUniqueId());
+
+        if (data.hasBackpack(slot)) {
+            data.getBackpack(slot).getContents().clear();
+            plugin.getDataManager().savePlayerData(target.getUniqueId());
+
+            plugin.getMessageManager().send(sender, "admin-backpack-cleared",
+                "%player%", target.getName(),
+                "%slot%", String.valueOf(slot));
+            plugin.getMessageManager().send(target, "admin-backpack-cleared-target",
+                "%slot%", String.valueOf(slot));
+        } else {
+            plugin.getMessageManager().send(sender, "admin-backpack-no-backpack");
         }
-
-        if (args.length < 3) {
-            plugin.getMessageManager().send(sender, "admin.usage.clear");
-            return true;
-        }
-
-        Player target = Bukkit.getPlayer(args[1]);
-        if (target == null) {
-            plugin.getMessageManager().send(sender, "player-not-found");
-            return true;
-        }
-
-        try {
-            int slot = Integer.parseInt(args[2]);
-
-            com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(target.getUniqueId());
-            if (data.hasBackpack(slot)) {
-                data.getBackpack(slot).getContents().clear();
-                plugin.getDataManager().savePlayerData(target.getUniqueId());
-
-                plugin.getMessageManager().send(sender, "admin-backpack-cleared",
-                    "%player%", target.getName(),
-                    "%slot%", String.valueOf(slot));
-                plugin.getMessageManager().send(target, "admin-backpack-cleared-target",
-                    "%slot%", String.valueOf(slot));
-            } else {
-                plugin.getMessageManager().send(sender, "admin-backpack-no-backpack");
-            }
-
-        } catch (NumberFormatException e) {
-            plugin.getMessageManager().send(sender, "invalid-slot", "%max%", "1-18");
-        }
-
-        return true;
     }
 
-    private boolean handleReset(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("vaultpack.admin")) {
-            plugin.getMessageManager().send(sender, "no-permission");
-            return true;
-        }
-
-        if (args.length < 2) {
-            plugin.getMessageManager().send(sender, "admin.usage.reset");
-            plugin.getMessageManager().send(sender, "admin.usage.reset-warning");
-            return true;
-        }
-
+    /**
+     * Reset a player's data (DANGEROUS).
+     * Usage: /vaultpack reset <player>
+     */
+    @Subcommand("reset")
+    @CommandPermission("vaultpack.admin")
+    @Description("Reset a player's data (DANGEROUS)")
+    @CommandCompletion("@players")
+    @Syntax("<player>")
+    public void onReset(CommandSender sender, String playerName) {
         // Support both online and offline players
-        String playerName = args[1];
         Player onlinePlayer = Bukkit.getPlayer(playerName);
-        java.util.UUID targetUUID = null;
+        UUID targetUUID = null;
 
         if (onlinePlayer != null) {
             targetUUID = onlinePlayer.getUniqueId();
         } else {
             // Try to find offline player
-            org.bukkit.OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
             if (offlinePlayer.hasPlayedBefore()) {
                 targetUUID = offlinePlayer.getUniqueId();
                 playerName = offlinePlayer.getName();
@@ -286,7 +224,7 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
 
         if (targetUUID == null) {
             plugin.getMessageManager().send(sender, "player-not-found");
-            return true;
+            return;
         }
 
         // Close any open backpacks/ender pages
@@ -310,28 +248,19 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
         if (onlinePlayer != null) {
             plugin.getMessageManager().send(onlinePlayer, "admin.reset-target");
         }
-
-        return true;
     }
 
-    private boolean handleInspect(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("vaultpack.admin")) {
-            plugin.getMessageManager().send(sender, "no-permission");
-            return true;
-        }
-
-        if (args.length < 2) {
-            plugin.getMessageManager().send(sender, "admin.usage.inspect");
-            return true;
-        }
-
-        Player target = Bukkit.getPlayer(args[1]);
-        if (target == null) {
-            plugin.getMessageManager().send(sender, "admin-player-offline");
-            return true;
-        }
-
-        com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(target.getUniqueId());
+    /**
+     * Inspect a player's backpacks and ender chests.
+     * Usage: /vaultpack inspect <player>
+     */
+    @Subcommand("inspect|view")
+    @CommandPermission("vaultpack.admin")
+    @Description("Inspect a player's backpacks and ender chests")
+    @CommandCompletion("@players")
+    @Syntax("<player>")
+    public void onInspect(CommandSender sender, Player target) {
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(target.getUniqueId());
 
         // Display inspect header
         List<String> headerMessages = plugin.getMessageManager().getMessageList("admin.inspect-header");
@@ -394,55 +323,17 @@ public class VaultPackCommand implements CommandExecutor, TabCompleter {
         for (String message : footerMessages) {
             sender.sendMessage(message);
         }
-        return true;
     }
 
+    /**
+     * Send help message based on permissions.
+     */
     private void sendHelp(CommandSender sender) {
-        // Show different help based on permission
         String helpKey = sender.hasPermission("vaultpack.admin") ? "admin.help-admin" : "admin.help-player";
         List<String> helpMessages = plugin.getMessageManager().getMessageList(helpKey);
 
         for (String message : helpMessages) {
             sender.sendMessage(message);
         }
-    }
-
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
-        List<String> completions = new ArrayList<>();
-
-        if (args.length == 1) {
-            completions.addAll(Arrays.asList("help", "version"));
-
-            if (sender.hasPermission("vaultpack.admin")) {
-                completions.addAll(Arrays.asList("reload", "give", "giveitem", "list", "types", "clear", "reset", "inspect", "view"));
-            }
-        } else if (args.length == 2 && sender.hasPermission("vaultpack.admin")) {
-            if (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("giveitem") ||
-                    args[0].equalsIgnoreCase("clear") || args[0].equalsIgnoreCase("reset") ||
-                    args[0].equalsIgnoreCase("inspect") || args[0].equalsIgnoreCase("view")) {
-                // Add online player names
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    completions.add(player.getName());
-                }
-            }
-        } else if (args.length == 3 && sender.hasPermission("vaultpack.admin")) {
-            if (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("clear")) {
-                // Add slot numbers
-                for (int i = 1; i <= plugin.getConfigManager().getMaxBackpackSlots(); i++) {
-                    completions.add(String.valueOf(i));
-                }
-            } else if (args[0].equalsIgnoreCase("giveitem")) {
-                // Add backpack types
-                completions.addAll(plugin.getBackpackTypeManager().getAllBackpackTypes().keySet());
-            }
-        } else if (args.length == 4 && sender.hasPermission("vaultpack.admin")) {
-            if (args[0].equalsIgnoreCase("giveitem")) {
-                // Add amount suggestions
-                completions.addAll(Arrays.asList("1", "5", "10", "64"));
-            }
-        }
-
-        return completions;
     }
 }

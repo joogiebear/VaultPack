@@ -4,7 +4,7 @@ import com.vaultpack.VaultPackPlugin;
 import com.vaultpack.config.MenuConfig;
 import com.vaultpack.models.Backpack;
 import com.vaultpack.models.EnderPage;
-import com.vaultpack.models.PlayerBackpackData;
+import com.vaultpack.data.holders.PlayerDataHolder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -44,7 +44,7 @@ public class StorageMenuGUI {
             return;
         }
 
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         // Build placeholders
         Map<String, String> placeholders = new HashMap<>();
@@ -76,7 +76,7 @@ public class StorageMenuGUI {
     /**
      * Add ender chest pages to the display slots
      */
-    private void addEnderChestPages(Inventory inv, Player player, PlayerBackpackData data, MenuConfig menuConfig) {
+    private void addEnderChestPages(Inventory inv, Player player, PlayerDataHolder data, MenuConfig menuConfig) {
         ConfigurationSection enderDisplay = menuConfig.getConfig().getConfigurationSection("enderchest-display");
         if (enderDisplay == null) return;
 
@@ -97,7 +97,7 @@ public class StorageMenuGUI {
     /**
      * Create an ender page display item
      */
-    private ItemStack createEnderPageItem(Player player, PlayerBackpackData data, int pageNumber, ConfigurationSection config) {
+    private ItemStack createEnderPageItem(Player player, PlayerDataHolder data, int pageNumber, ConfigurationSection config) {
         boolean unlocked = data.isEnderPageUnlocked(pageNumber);
         EnderPage page = data.getEnderPage(pageNumber);
 
@@ -151,7 +151,7 @@ public class StorageMenuGUI {
     /**
      * Add backpack slots to the display
      */
-    private void addBackpackSlots(Inventory inv, Player player, PlayerBackpackData data, MenuConfig menuConfig) {
+    private void addBackpackSlots(Inventory inv, Player player, PlayerDataHolder data, MenuConfig menuConfig) {
         ConfigurationSection backpackDisplay = menuConfig.getConfig().getConfigurationSection("backpack-display");
         if (backpackDisplay == null) return;
 
@@ -180,7 +180,7 @@ public class StorageMenuGUI {
     /**
      * Create a backpack slot display item
      */
-    private ItemStack createBackpackSlotItem(Player player, PlayerBackpackData data, int slotNumber, ConfigurationSection config) {
+    private ItemStack createBackpackSlotItem(Player player, PlayerDataHolder data, int slotNumber, ConfigurationSection config) {
         Backpack backpack = data.getBackpack(slotNumber);
 
         ConfigurationSection itemConfig;

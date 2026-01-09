@@ -1,5 +1,6 @@
 package com.vaultpack;
 
+import co.aikar.commands.PaperCommandManager;
 import com.vaultpack.commands.BackpackCommand;
 import com.vaultpack.commands.VaultPackCommand;
 import com.vaultpack.data.BackpackDataManager;
@@ -10,6 +11,7 @@ import com.vaultpack.managers.BackpackTypeManager;
 import com.vaultpack.managers.ConfigManager;
 import com.vaultpack.managers.EconomyManager;
 import com.vaultpack.placeholder.BackpackPlaceholder;
+import lombok.Getter;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -23,16 +25,20 @@ public class VaultPackPlugin extends JavaPlugin {
     private static VaultPackPlugin instance;
     private Logger logger;
 
+    // Phase 3: ACF Command Manager
+    @Getter
+    private PaperCommandManager commandManager;
+
     // Managers
     private ConfigManager configManager;
-    private com.vaultpack.managers.MessageManager messageManager;  // Message system (Phase 3: Enhanced with Adventure API)
-    private com.vaultpack.managers.AdventureMessageManager adventureMessageManager;  // Phase 3: Pure Component-based messaging (optional)
-    private com.vaultpack.config.MenuManager menuManager;  // v1.0.0: Menu system
+    private com.vaultpack.messages.MessageManager messageManager;
+    private com.vaultpack.config.MenuManager menuManager;
     private BackpackDataManager dataManager;
     private BackpackManager backpackManager;
     private EconomyManager economyManager;
     private BackpackTypeManager backpackTypeManager;
-    private com.vaultpack.managers.EnderChestManager enderChestManager; // v2.0.0
+    private com.vaultpack.managers.EnderChestManager enderChestManager;
+    private com.vaultpack.managers.ExpansionManager expansionManager; // Phase 7: Expansion system
 
     // Economy
     private Economy economy = null;
@@ -52,6 +58,9 @@ public class VaultPackPlugin extends JavaPlugin {
         // Initialize managers
         initializeManagers();
 
+        // Phase 3: Initialize ACF Command Manager
+        initializeACF();
+
         // Setup hooks
         setupVault();
         setupPlaceholderAPI();
@@ -65,6 +74,9 @@ public class VaultPackPlugin extends JavaPlugin {
         // Load player data
         dataManager.loadAllData();
 
+        // Phase 7: Register expansions
+        registerExpansions();
+
         logger.info("VaultPack v" + getDescription().getVersion() + " enabled successfully!");
         logger.info("Vault: " + (vaultEnabled ? "✓" : "✗") + " | PlaceholderAPI: " + (placeholderAPIEnabled ? "✓" : "✗"));
     }
@@ -75,9 +87,14 @@ public class VaultPackPlugin extends JavaPlugin {
         Bukkit.getGlobalRegionScheduler().cancelTasks(this);
         Bukkit.getAsyncScheduler().cancelTasks(this);
 
-        // Save all data
+        // Phase 7: Disable all expansions
+        if (expansionManager != null) {
+            expansionManager.disableAll();
+        }
+
+        // Save all data and shutdown storage
         if (dataManager != null) {
-            dataManager.saveAllData();
+            dataManager.shutdown();
         }
 
         // Close backpack inventories
@@ -93,11 +110,8 @@ public class VaultPackPlugin extends JavaPlugin {
         configManager = new ConfigManager(this);
         configManager.loadConfig();
 
-        // Message manager - Load messages from lang.yml (Phase 3: Enhanced with Adventure API support)
-        messageManager = new com.vaultpack.managers.MessageManager(this);
-
-        // Adventure Message manager - Pure Component-based messaging (Phase 3: Optional for advanced usage)
-        adventureMessageManager = new com.vaultpack.managers.AdventureMessageManager(this);
+        // Phase 4: Modern Message manager with Adventure API and MiniMessage
+        messageManager = new com.vaultpack.messages.MessageManager(this);
 
         // Validate configuration
         com.vaultpack.utils.ConfigValidator validator = new com.vaultpack.utils.ConfigValidator(this);
@@ -125,6 +139,44 @@ public class VaultPackPlugin extends JavaPlugin {
 
         // Ender Chest manager (v2.0.0)
         enderChestManager = new com.vaultpack.managers.EnderChestManager(this);
+
+        // Phase 7: Expansion manager
+        expansionManager = new com.vaultpack.managers.ExpansionManager(this);
+    }
+
+    /**
+     * Phase 3: Initialize ACF (Aikar's Command Framework)
+     * Sets up the modern command framework with annotations and auto-completion.
+     */
+    private void initializeACF() {
+        commandManager = new PaperCommandManager(this);
+
+        // Enable unstable API (required for some features)
+        commandManager.enableUnstableAPI("help");
+
+        // Register command contexts (custom parameter types)
+        // Example: @CommandAlias("backpack") public void cmd(Player player, @Values("@backpackSlots") int slot)
+        // This will be expanded in future phases
+
+        // Register command completions
+        commandManager.getCommandCompletions().registerAsyncCompletion("backpackSlots", c -> {
+            int maxSlots = configManager.getMaxBackpackSlots();
+            java.util.List<String> slots = new java.util.ArrayList<>();
+            for (int i = 1; i <= maxSlots; i++) {
+                slots.add(String.valueOf(i));
+            }
+            return slots;
+        });
+
+        commandManager.getCommandCompletions().registerAsyncCompletion("enderPages", c -> {
+            java.util.List<String> pages = new java.util.ArrayList<>();
+            for (int i = 1; i <= 5; i++) { // Max 5 pages for now
+                pages.add(String.valueOf(i));
+            }
+            return pages;
+        });
+
+        logger.info("ACF Command Framework initialized successfully");
     }
 
     private void setupVault() {
@@ -148,13 +200,9 @@ public class VaultPackPlugin extends JavaPlugin {
 
         // Check for economy plugins
         Plugin royaleEconomy = getServer().getPluginManager().getPlugin("RoyaleEconomy");
-        Plugin ecoPlugin = getServer().getPluginManager().getPlugin("eco");
 
         if (royaleEconomy != null) {
             logger.info("Detected RoyaleEconomy v" + royaleEconomy.getDescription().getVersion());
-        }
-        if (ecoPlugin != null) {
-            logger.info("Detected eco v" + ecoPlugin.getDescription().getVersion() + " (may act as economy bridge)");
         }
 
         // Try to get the Economy service provider
@@ -165,15 +213,11 @@ public class VaultPackPlugin extends JavaPlugin {
 
             // Debug: Check if RoyaleEconomy is loaded but not registered
             if (royaleEconomy != null && royaleEconomy.isEnabled()) {
-                logger.warning("RoyaleEconomy is loaded but not registered with Vault!");
-
-                if (ecoPlugin != null && ecoPlugin.isEnabled()) {
-                    logger.warning("The 'eco' plugin is loaded - it may need to register the economy provider.");
-                    logger.warning("Check eco's configuration to ensure it's set to provide economy services via Vault.");
-                } else {
-                    logger.warning("RoyaleEconomy requires the 'eco' plugin to bridge with Vault!");
-                    logger.warning("Make sure the eco plugin is installed and loaded.");
-                }
+                logger.warning("RoyaleEconomy is loaded but not registering with Vault!");
+                logger.warning("Possible reasons:");
+                logger.warning("  - RoyaleEconomy may be loading after Vault (check plugin load order)");
+                logger.warning("  - Check RoyaleEconomy's configuration for Vault integration settings");
+                logger.warning("  - Try restarting the server to fix load order issues");
             }
 
             vaultEnabled = false;
@@ -198,35 +242,41 @@ public class VaultPackPlugin extends JavaPlugin {
         logger.info("PlaceholderAPI hooked successfully!");
     }
 
+    /**
+     * Phase 3: Register ACF commands
+     * All commands now use ACF (Aikar's Command Framework) for clean, annotation-based structure.
+     */
     private void registerCommands() {
-        // Main command
-        BackpackCommand backpackCommand = new BackpackCommand(this);
-        getCommand("backpack").setExecutor(backpackCommand);
-        getCommand("backpack").setTabCompleter(backpackCommand);
+        // Register ACF commands
+        commandManager.registerCommand(new BackpackCommand(this));
+        commandManager.registerCommand(new com.vaultpack.commands.EnderChestCommand(this));
+        commandManager.registerCommand(new com.vaultpack.commands.StorageCommand(this));
+        commandManager.registerCommand(new VaultPackCommand(this));
 
-        // v2.0.0: Ender chest command
-        com.vaultpack.commands.EnderChestCommand enderChestCommand = new com.vaultpack.commands.EnderChestCommand(this);
-        getCommand("enderchest").setExecutor(enderChestCommand);
-        getCommand("enderchest").setTabCompleter(enderChestCommand);
-
-        // v2.0.0: Storage command
-        com.vaultpack.commands.StorageCommand storageCommand = new com.vaultpack.commands.StorageCommand(this);
-        getCommand("storage").setExecutor(storageCommand);
-        getCommand("storage").setTabCompleter(storageCommand);
-
-        // Internal command
-        VaultPackCommand vaultPackCommand = new VaultPackCommand(this);
-        getCommand("vaultpack").setExecutor(vaultPackCommand);
-        getCommand("vaultpack").setTabCompleter(vaultPackCommand);
+        logger.info("Commands registered successfully using ACF");
     }
 
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BackpackListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new com.vaultpack.listeners.EnderChestListener(this), this); // v2.0.0
-        Bukkit.getPluginManager().registerEvents(new com.vaultpack.listeners.DeathProtectionListener(this), this); // v2.0.0
+        Bukkit.getPluginManager().registerEvents(new com.vaultpack.listeners.EnderChestListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new com.vaultpack.listeners.DeathProtectionListener(this), this);
         Bukkit.getPluginManager().registerEvents(new com.vaultpack.listeners.CraftingListener(this), this); // Recipe validation with amounts
-        Bukkit.getPluginManager().registerEvents(new com.vaultpack.gui.MenuClickHandler(this), this); // v1.0.0: Menu system click handler
+        Bukkit.getPluginManager().registerEvents(new com.vaultpack.gui.MenuClickHandler(this), this);
+    }
+
+    /**
+     * Phase 7: Register expansions
+     * Built-in expansions that extend VaultPack functionality.
+     */
+    private void registerExpansions() {
+        // Register built-in expansions
+        if (configManager.isDebugMode()) {
+            // Only enable logging expansion in debug mode
+            expansionManager.registerExpansion(new com.vaultpack.expansions.LoggingExpansion());
+        }
+
+        logger.info("Registered " + expansionManager.getExpansions().size() + " expansion(s)");
     }
 
     public void reload() {
@@ -235,9 +285,8 @@ public class VaultPackPlugin extends JavaPlugin {
         // Reload config
         configManager.loadConfig();
 
-        // Reload messages
+        // Reload messages (Phase 4: Modern message system)
         messageManager.reload();
-        adventureMessageManager.reload();
 
         // Reload menus (v1.0.0)
         menuManager.reloadMenus();
@@ -258,18 +307,14 @@ public class VaultPackPlugin extends JavaPlugin {
         return configManager;
     }
 
-    public com.vaultpack.managers.MessageManager getMessageManager() {
-        return messageManager;
-    }
-
     /**
-     * Get the Adventure Message Manager for pure Component-based messaging (Phase 3)
-     * Use this for advanced text formatting with gradients, hover, click events, etc.
+     * Get the Message Manager for modern Component-based messaging (Phase 4).
+     * Uses Adventure API with MiniMessage for gradients, hover, click events, etc.
      *
-     * @return AdventureMessageManager instance
+     * @return MessageManager instance
      */
-    public com.vaultpack.managers.AdventureMessageManager getAdventureMessageManager() {
-        return adventureMessageManager;
+    public com.vaultpack.messages.MessageManager getMessageManager() {
+        return messageManager;
     }
 
     public BackpackDataManager getDataManager() {
@@ -306,5 +351,15 @@ public class VaultPackPlugin extends JavaPlugin {
 
     public com.vaultpack.config.MenuManager getMenuManager() {
         return menuManager;
+    }
+
+    /**
+     * Get the Expansion Manager (Phase 7).
+     * Manages registration and lifecycle of plugin expansions.
+     *
+     * @return ExpansionManager instance
+     */
+    public com.vaultpack.managers.ExpansionManager getExpansionManager() {
+        return expansionManager;
     }
 }

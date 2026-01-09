@@ -55,8 +55,7 @@ public class MenuManager {
                 MenuConfig menu = new MenuConfig(menuId, file);
                 menus.put(menuId, menu);
             } catch (Exception e) {
-                logger.severe("Failed to load menu: " + menuId);
-                e.printStackTrace();
+                logger.severe("Failed to load menu: " + menuId + " - " + e.getMessage());
             }
         }
 

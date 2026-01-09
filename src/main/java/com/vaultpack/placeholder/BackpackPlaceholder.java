@@ -2,7 +2,7 @@ package com.vaultpack.placeholder;
 
 import com.vaultpack.VaultPackPlugin;
 import com.vaultpack.models.Backpack;
-import com.vaultpack.models.PlayerBackpackData;
+import com.vaultpack.data.holders.PlayerDataHolder;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -45,7 +45,7 @@ public class BackpackPlaceholder extends PlaceholderExpansion {
             return "";
         }
 
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         // %ecobackpack_total_slots%
         if (params.equals("total_slots")) {
@@ -178,7 +178,7 @@ public class BackpackPlaceholder extends PlaceholderExpansion {
         return null;
     }
 
-    private String getSlotItem(PlayerBackpackData data, int slot) {
+    private String getSlotItem(PlayerDataHolder data, int slot) {
         if (!data.isSlotUnlocked(slot)) {
             return "gray_dye"; // Locked
         }
@@ -190,7 +190,7 @@ public class BackpackPlaceholder extends PlaceholderExpansion {
         return "chest"; // Has backpack
     }
 
-    private String getSlotName(PlayerBackpackData data, int slot) {
+    private String getSlotName(PlayerDataHolder data, int slot) {
         if (!data.isSlotUnlocked(slot)) {
             int cost = plugin.getConfigManager().getSlotUnlockCost(slot);
             String perm = plugin.getConfigManager().getSlotPermission(slot);

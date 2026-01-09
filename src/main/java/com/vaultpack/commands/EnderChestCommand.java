@@ -1,22 +1,18 @@
 package com.vaultpack.commands;
 
+import co.aikar.commands.BaseCommand;
+import co.aikar.commands.annotation.*;
 import com.vaultpack.VaultPackPlugin;
 import com.vaultpack.gui.EnderChestGUI;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * v1.0.0: /enderchest command
- * Opens ender chest page selector or specific page
+ * ACF-based ender chest command.
+ * Opens ender chest page selector or specific page.
  */
-public class EnderChestCommand implements CommandExecutor, TabCompleter {
+@CommandAlias("enderchest|ec")
+@Description("Manage your ender chest pages")
+public class EnderChestCommand extends BaseCommand {
 
     private final VaultPackPlugin plugin;
     private final EnderChestGUI enderChestGUI;
@@ -26,70 +22,62 @@ public class EnderChestCommand implements CommandExecutor, TabCompleter {
         this.enderChestGUI = new EnderChestGUI(plugin);
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            plugin.getMessageManager().send(sender, "command-player-only");
-            return true;
-        }
+    /**
+     * Default command - opens ender chest page selector.
+     * Usage: /enderchest
+     */
+    @Default
+    @CommandPermission("vaultpack.use")
+    @Description("Open your ender chest page selector")
+    public void onDefault(Player player) {
+        enderChestGUI.open(player);
+    }
 
-        Player player = (Player) sender;
-
-        // Check permission
-        if (!player.hasPermission("vaultpack.use")) {
-            plugin.getMessageManager().send(player, "no-permission");
-            return true;
-        }
-
-        // No args - open the page selector GUI (v1.0.0)
-        if (args.length == 0) {
-            enderChestGUI.open(player);
-            return true;
-        }
-
-        // With page number - open that specific page directly
-        int pageNumber;
-        try {
-            pageNumber = Integer.parseInt(args[0]);
-        } catch (NumberFormatException e) {
-            plugin.getMessageManager().send(player, "enderchest-invalid-page");
-            return true;
-        }
-
+    /**
+     * Open a specific ender chest page.
+     * Usage: /enderchest <page>
+     */
+    @Subcommand("open")
+    @CommandAlias("enderchest")
+    @CommandPermission("vaultpack.use")
+    @Description("Open a specific ender chest page")
+    @CommandCompletion("@enderPages")
+    @Syntax("<page> - Page number (1-9)")
+    public void onOpenPage(Player player, int pageNumber) {
         // Validate page number range
         if (pageNumber < 1 || pageNumber > 9) {
             plugin.getMessageManager().send(player, "enderchest-invalid-page");
-            return true;
+            return;
         }
 
         // Check if page is unlocked
         if (!plugin.getDataManager().getPlayerData(player.getUniqueId()).isEnderPageUnlocked(pageNumber)) {
-            plugin.getMessageManager().send(player, "enderchest-page-locked", "%page%", String.valueOf(pageNumber));
+            plugin.getMessageManager().send(player, "enderchest-page-locked",
+                "%page%", String.valueOf(pageNumber));
             plugin.getMessageManager().send(player, "enderchest-view-pages");
-            return true;
+            return;
         }
 
         // Open the ender page directly
         plugin.getEnderChestManager().openEnderPage(player, pageNumber);
-        return true;
     }
 
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> completions = new ArrayList<>();
-
-        if (args.length == 1) {
-            if (sender instanceof Player) {
-                Player player = (Player) sender;
-                int unlockedPages = plugin.getDataManager().getPlayerData(player.getUniqueId()).getUnlockedEnderPages();
-
-                // Suggest unlocked page numbers
-                for (int i = 1; i <= unlockedPages; i++) {
-                    completions.add(String.valueOf(i));
-                }
-            }
-        }
-
-        return completions;
+    /**
+     * Show ender chest command help.
+     * Usage: /enderchest help
+     */
+    @Subcommand("help")
+    @Description("Show ender chest command help")
+    @HelpCommand
+    public void onHelp(Player player) {
+        player.sendMessage("§8§m                                               ");
+        player.sendMessage("§6§lVaultPack Ender Chests");
+        player.sendMessage("");
+        player.sendMessage("§e/enderchest §7- Open ender chest page selector");
+        player.sendMessage("§e/enderchest <page> §7- Open specific ender page");
+        player.sendMessage("§e/enderchest help §7- Show this help message");
+        player.sendMessage("");
+        player.sendMessage("§7Unlock more pages to expand your ender storage!");
+        player.sendMessage("§8§m                                               ");
     }
 }

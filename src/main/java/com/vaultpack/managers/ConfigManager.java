@@ -1,157 +1,153 @@
 package com.vaultpack.managers;
 
 import com.vaultpack.VaultPackPlugin;
-import com.vaultpack.models.BackpackTier;
-import com.vaultpack.models.GUIItem;
+import com.vaultpack.config.BackpacksConfig;
+import com.vaultpack.config.BackpackType;
+import com.vaultpack.config.MainConfig;
+import lombok.Getter;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * Configuration manager for VaultPack 3.0.
+ * Uses the new BaseConfig system for cleaner, reflection-based config management.
+ *
+ * <p>This class serves as a facade for accessing configuration values from
+ * MainConfig and BackpacksConfig.</p>
+ */
 public class ConfigManager {
 
     private final VaultPackPlugin plugin;
+
+    @Getter
+    private MainConfig mainConfig;
+
+    @Getter
+    private BackpacksConfig backpacksConfig;
+
+    // Legacy FileConfiguration for compatibility with plugin.getConfig()
     private FileConfiguration config;
-
-    // Config values
-    private int maxBackpackSlots;
-    private int defaultUnlockedSlots;
-    private boolean slotUnlockEnabled;
-    private boolean useEconomy;
-    private boolean usePermissions;
-    private int slotUnlockBaseCost;
-    private int slotUnlockCostPerSlot;
-    private String permissionFormat;
-
-    private boolean upgradeEnabled;
-    private boolean upgradeUseEconomy;
-    private Map<String, Integer> upgradeCosts;
-
-    // Blacklist
-    private boolean blacklistEnabled;
-    private List<Material> blacklistedMaterials;
-    private String blacklistMessage;
-
-    // v2.0.0: Ender Chest
-    private boolean enderUnlockEnabled;
-    private boolean enderUseEconomy;
-    private boolean enderUsePermissions;
-    private int enderUnlockBaseCost;
-    private int enderUnlockCostPerPage;
-    private String enderPermissionFormat;
-
-    // v2.0.0: GUI Customization
-    private Map<String, GUIItem> guiItems;
 
     public ConfigManager(VaultPackPlugin plugin) {
         this.plugin = plugin;
     }
 
+    /**
+     * Load all configuration files using the new BaseConfig system.
+     */
     public void loadConfig() {
+        // Ensure default configs are saved
         plugin.saveDefaultConfig();
         plugin.reloadConfig();
         config = plugin.getConfig();
 
-        // Load storage limits
-        maxBackpackSlots = config.getInt("storage.max-backpack-slots", 18);
-        defaultUnlockedSlots = config.getInt("storage.default-unlocked-slots", 1);
+        // Initialize and load MainConfig
+        File configFile = new File(plugin.getDataFolder(), "config.yml");
+        mainConfig = new MainConfig(configFile);
+        mainConfig.load();
+        mainConfig.validate();
 
-        // Load economy settings
-        boolean economyEnabled = config.getBoolean("economy.enabled", true);
+        // Initialize and load BackpacksConfig
+        File backpacksFile = new File(plugin.getDataFolder(), "backpacks.yml");
+        if (!backpacksFile.exists()) {
+            plugin.saveResource("backpacks.yml", false);
+        }
+        backpacksConfig = new BackpacksConfig(backpacksFile);
+        backpacksConfig.load();
 
-        slotUnlockEnabled = config.getBoolean("economy.slot-unlock.enabled", true);
-        useEconomy = economyEnabled && slotUnlockEnabled;
-        slotUnlockBaseCost = config.getInt("economy.slot-unlock.base-cost", 1000);
-        slotUnlockCostPerSlot = config.getInt("economy.slot-unlock.cost-per-slot", 500);
+        plugin.getLogger().info("Configuration loaded successfully - VaultPack 3.0");
+    }
 
-        enderUnlockEnabled = config.getBoolean("economy.page-unlock.enabled", true);
-        enderUseEconomy = economyEnabled && enderUnlockEnabled;
-        enderUnlockBaseCost = config.getInt("economy.page-unlock.base-cost", 2000);
-        enderUnlockCostPerPage = config.getInt("economy.page-unlock.cost-per-page", 1000);
+    /**
+     * Reload all configurations from disk.
+     */
+    public void reloadConfigs() {
+        plugin.reloadConfig();
+        config = plugin.getConfig();
 
-        upgradeEnabled = true;
-        upgradeUseEconomy = economyEnabled;
-
-        // Load upgrade costs
-        upgradeCosts = new HashMap<>();
-        upgradeCosts.put("small-to-medium", config.getInt("economy.upgrade-costs.small-to-medium", 5000));
-        upgradeCosts.put("medium-to-large", config.getInt("economy.upgrade-costs.medium-to-large", 10000));
-        upgradeCosts.put("large-to-huge", config.getInt("economy.upgrade-costs.large-to-huge", 20000));
-        upgradeCosts.put("huge-to-massive", config.getInt("economy.upgrade-costs.huge-to-massive", 40000));
-        upgradeCosts.put("massive-to-colossal", config.getInt("economy.upgrade-costs.massive-to-colossal", 80000));
-        upgradeCosts.put("colossal-to-greater", config.getInt("economy.upgrade-costs.colossal-to-greater", 160000));
-        upgradeCosts.put("greater-to-jumbo", config.getInt("economy.upgrade-costs.greater-to-jumbo", 320000));
-
-        // Load permission settings
-        usePermissions = config.getBoolean("permissions.use-for-slots", true);
-        enderUsePermissions = config.getBoolean("permissions.use-for-pages", true);
-        permissionFormat = config.getString("permissions.slot-format", "vaultpack.slots.%slot%");
-        enderPermissionFormat = config.getString("permissions.page-format", "vaultpack.enderchest.page.%page%");
-
-        // Load blacklist
-        blacklistEnabled = config.getBoolean("item-blacklist.enabled", true);
-        blacklistedMaterials = new ArrayList<>();
-        blacklistMessage = config.getString("item-blacklist.message", "&cThis item cannot be stored in backpacks!");
-
-        List<String> materialNames = config.getStringList("item-blacklist.materials");
-        for (String materialName : materialNames) {
-            try {
-                Material material = Material.valueOf(materialName.toUpperCase());
-                blacklistedMaterials.add(material);
-            } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid material in blacklist: " + materialName);
-            }
+        if (mainConfig != null) {
+            mainConfig.reload();
+            mainConfig.validate();
         }
 
-        // GUI items no longer loaded here - handled by MenuManager
-        guiItems = new HashMap<>();
+        if (backpacksConfig != null) {
+            backpacksConfig.reload();
+        }
+
+        plugin.getLogger().info("Configurations reloaded successfully");
     }
 
-    public int getMaxBackpackSlots() {
-        return maxBackpackSlots;
+    /**
+     * Save all configurations to disk.
+     */
+    public void saveConfigs() {
+        if (mainConfig != null) {
+            mainConfig.save();
+        }
+
+        if (backpacksConfig != null) {
+            backpacksConfig.save();
+        }
     }
 
-    public int getDefaultUnlockedSlots() {
-        return defaultUnlockedSlots;
+    // ============================================
+    //         Convenience Delegation Methods
+    // ============================================
+
+    /**
+     * Get a backpack type by ID.
+     *
+     * @param id The backpack type ID
+     * @return The BackpackType, or null if not found
+     */
+    public BackpackType getBackpackType(String id) {
+        return backpacksConfig.getBackpackType(id);
     }
 
-    public boolean isSlotUnlockEnabled() {
-        return slotUnlockEnabled;
+    /**
+     * Get all backpack types ordered by size.
+     *
+     * @return List of BackpackType ordered by size
+     */
+    public List<BackpackType> getBackpackTypesBySize() {
+        return backpacksConfig.getBackpackTypesBySize();
     }
 
-    public boolean useEconomy() {
-        return useEconomy;
+    /**
+     * Check if a material is blacklisted.
+     * Note: This needs to be implemented in MainConfig in a future phase.
+     *
+     * @param material The material to check
+     * @return true if blacklisted
+     */
+    public boolean isBlacklisted(Material material) {
+        // TODO Phase 2.5: Migrate blacklist to MainConfig
+        boolean blacklistEnabled = config.getBoolean("item-blacklist.enabled", true);
+        if (!blacklistEnabled) return false;
+
+        List<String> materialNames = config.getStringList("item-blacklist.materials");
+        for (String name : materialNames) {
+            try {
+                if (Material.valueOf(name.toUpperCase()) == material) {
+                    return true;
+                }
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        return false;
     }
 
-    public boolean usePermissions() {
-        return usePermissions;
-    }
-
-    public int getSlotUnlockCost(int slotNumber) {
-        return slotUnlockBaseCost + (slotNumber * slotUnlockCostPerSlot);
-    }
-
-    public String getSlotPermission(int slotNumber) {
-        return permissionFormat.replace("%slot%", String.valueOf(slotNumber));
-    }
-
-    public boolean isUpgradeEnabled() {
-        return upgradeEnabled;
-    }
-
-    public boolean upgradeUseEconomy() {
-        return upgradeUseEconomy;
-    }
-
-    public int getUpgradeCost(BackpackTier from, BackpackTier to) {
-        String key = from.name().toLowerCase() + "-to-" + to.name().toLowerCase();
-        return upgradeCosts.getOrDefault(key, 0);
-    }
-
+    /**
+     * Get a message from the lang file.
+     *
+     * @param path         The message path
+     * @param replacements Replacement pairs (placeholder, value)
+     * @return The formatted message
+     */
     public String getMessage(String path, String... replacements) {
         String message = config.getString("messages." + path, path);
 
@@ -165,47 +161,298 @@ public class ConfigManager {
         return message.replace("&", "§");
     }
 
+    /**
+     * Get the plugin prefix.
+     *
+     * @return The prefix from config or MainConfig
+     */
     public String getPrefix() {
+        if (mainConfig != null) {
+            return mainConfig.getPluginPrefix().replace("&", "§");
+        }
         return getMessage("prefix");
     }
 
+    /**
+     * Get the legacy FileConfiguration.
+     * Kept for compatibility with existing code.
+     *
+     * @return The FileConfiguration
+     */
     public FileConfiguration getConfig() {
         return config;
     }
 
-    public boolean isBlacklistEnabled() {
-        return blacklistEnabled;
+    // ============================================
+    //      Storage Type Convenience Methods
+    // ============================================
+
+    /**
+     * Check if MySQL storage is enabled.
+     *
+     * @return true if using MySQL
+     */
+    public boolean isMySQLEnabled() {
+        return mainConfig != null && mainConfig.isMySQLEnabled();
     }
 
-    public boolean isBlacklisted(Material material) {
-        return blacklistEnabled && blacklistedMaterials.contains(material);
+    /**
+     * Check if YAML storage is enabled.
+     *
+     * @return true if using YAML
+     */
+    public boolean isYAMLEnabled() {
+        return mainConfig != null && mainConfig.isYAMLEnabled();
     }
 
-    public String getBlacklistMessage() {
-        return blacklistMessage.replace("&", "§");
+    /**
+     * Check if SQLite storage is enabled.
+     *
+     * @return true if using SQLite
+     */
+    public boolean isSQLiteEnabled() {
+        return mainConfig != null && mainConfig.isSQLiteEnabled();
     }
 
-    // v2.0.0: Ender Chest methods
+    // ============================================
+    //          Feature Flag Methods
+    // ============================================
+
+    /**
+     * Check if backpacks are enabled.
+     *
+     * @return true if enabled
+     */
+    public boolean isBackpacksEnabled() {
+        return mainConfig != null && mainConfig.getEnableBackpacks();
+    }
+
+    /**
+     * Check if ender chests are enabled.
+     *
+     * @return true if enabled
+     */
+    public boolean isEnderChestsEnabled() {
+        return mainConfig != null && mainConfig.getEnableEnderChests();
+    }
+
+    /**
+     * Check if virtual storage is enabled.
+     *
+     * @return true if enabled
+     */
+    public boolean isVirtualStorageEnabled() {
+        return mainConfig != null && mainConfig.getEnableVirtualStorage();
+    }
+
+    /**
+     * Check if crafting is enabled.
+     *
+     * @return true if enabled
+     */
+    public boolean isCraftingEnabled() {
+        return mainConfig != null && mainConfig.getEnableCrafting();
+    }
+
+    /**
+     * Check if debug mode is enabled.
+     *
+     * @return true if enabled
+     */
+    public boolean isDebugMode() {
+        return mainConfig != null && mainConfig.getDebugMode();
+    }
+
+    // ============================================
+    //         Backpack Slot Methods
+    // ============================================
+
+    /**
+     * Get the maximum number of backpack slots.
+     *
+     * @return Max backpack slots
+     */
+    public int getMaxBackpackSlots() {
+        return mainConfig != null ? mainConfig.getMaxBackpackSlots() : 18;
+    }
+
+    /**
+     * Get the default number of unlocked slots.
+     *
+     * @return Default unlocked slots
+     */
+    public int getDefaultUnlockedSlots() {
+        return mainConfig != null ? mainConfig.getDefaultUnlockedSlots() : 1;
+    }
+
+    // ============================================
+    //         Economy Methods
+    // ============================================
+
+    /**
+     * Check if economy is enabled.
+     *
+     * @return true if enabled
+     */
+    public boolean useEconomy() {
+        return mainConfig != null && mainConfig.getEconomyEnabled() && mainConfig.getSlotUnlockEnabled();
+    }
+
+    /**
+     * Check if slot unlocking is enabled.
+     *
+     * @return true if enabled
+     */
+    public boolean isSlotUnlockEnabled() {
+        return mainConfig != null && mainConfig.getSlotUnlockEnabled();
+    }
+
+    /**
+     * Get the cost to unlock a specific slot.
+     *
+     * @param slotNumber The slot number
+     * @return The cost
+     */
+    public int getSlotUnlockCost(int slotNumber) {
+        if (mainConfig == null) return 0;
+        return mainConfig.getSlotUnlockBaseCost() + (slotNumber * mainConfig.getSlotUnlockCostPerSlot());
+    }
+
+    /**
+     * Check if ender page unlocking is enabled.
+     *
+     * @return true if enabled
+     */
     public boolean isEnderUnlockEnabled() {
-        return enderUnlockEnabled;
+        return mainConfig != null && mainConfig.getPageUnlockEnabled();
     }
 
+    /**
+     * Check if economy is used for ender page unlocking.
+     *
+     * @return true if enabled
+     */
     public boolean enderUseEconomy() {
-        return enderUseEconomy;
+        return mainConfig != null && mainConfig.getEconomyEnabled() && mainConfig.getPageUnlockEnabled();
     }
 
-    public boolean enderUsePermissions() {
-        return enderUsePermissions;
-    }
-
+    /**
+     * Get the cost to unlock an ender chest page.
+     *
+     * @param pageNumber The page number
+     * @return The cost
+     */
     public int getEnderPageUnlockCost(int pageNumber) {
-        return enderUnlockBaseCost + (pageNumber * enderUnlockCostPerPage);
+        if (mainConfig == null) return 0;
+        return mainConfig.getPageUnlockBaseCost() + (pageNumber * mainConfig.getPageUnlockCostPerPage());
     }
 
+    /**
+     * Check if upgrades are enabled.
+     *
+     * @return true if enabled
+     */
+    public boolean isUpgradeEnabled() {
+        return mainConfig != null && mainConfig.getUpgradeEnabled();
+    }
+
+    /**
+     * Check if economy is used for upgrades.
+     *
+     * @return true if enabled
+     */
+    public boolean upgradeUseEconomy() {
+        return mainConfig != null && mainConfig.getEconomyEnabled() && mainConfig.getUpgradeEnabled();
+    }
+
+    /**
+     * Get the cost to upgrade from one tier to another.
+     *
+     * @param from The current tier
+     * @param to   The target tier
+     * @return The upgrade cost
+     */
+    public int getUpgradeCost(com.vaultpack.models.BackpackTier from, com.vaultpack.models.BackpackTier to) {
+        if (mainConfig == null) return 0;
+
+        String key = from.name().toLowerCase() + "-to-" + to.name().toLowerCase();
+
+        return switch (key) {
+            case "small-to-medium" -> mainConfig.getUpgradeSmallToMedium();
+            case "medium-to-large" -> mainConfig.getUpgradeMediumToLarge();
+            case "large-to-huge" -> mainConfig.getUpgradeLargeToHuge();
+            case "huge-to-massive" -> mainConfig.getUpgradeHugeToMassive();
+            case "massive-to-colossal" -> mainConfig.getUpgradeMassiveToColossal();
+            case "colossal-to-greater" -> mainConfig.getUpgradeColossalToGreater();
+            case "greater-to-jumbo" -> mainConfig.getUpgradeGreaterToJumbo();
+            default -> 0;
+        };
+    }
+
+    // ============================================
+    //         Permission Methods
+    // ============================================
+
+    /**
+     * Check if permissions are used for slot unlocking.
+     *
+     * @return true if enabled
+     */
+    public boolean usePermissions() {
+        return mainConfig != null && mainConfig.getUsePermissionsForSlots();
+    }
+
+    /**
+     * Check if permissions are used for ender pages.
+     *
+     * @return true if enabled
+     */
+    public boolean enderUsePermissions() {
+        return mainConfig != null && mainConfig.getUsePermissionsForPages();
+    }
+
+    /**
+     * Get the permission node for a specific slot.
+     *
+     * @param slotNumber The slot number
+     * @return The permission node
+     */
+    public String getSlotPermission(int slotNumber) {
+        if (mainConfig == null) return "vaultpack.slots." + slotNumber;
+        return mainConfig.getSlotPermissionFormat().replace("%slot%", String.valueOf(slotNumber));
+    }
+
+    /**
+     * Get the permission node for an ender chest page.
+     *
+     * @param pageNumber The page number
+     * @return The permission node
+     */
     public String getEnderPagePermission(int pageNumber) {
-        return enderPermissionFormat.replace("%page%", String.valueOf(pageNumber));
+        if (mainConfig == null) return "vaultpack.enderchest.page." + pageNumber;
+        return mainConfig.getPagePermissionFormat().replace("%page%", String.valueOf(pageNumber));
     }
 
-    // Note: GUI customization is now handled by MenuManager
-    // See menus/ folder for GUI configurations
+    // ============================================
+    //         Blacklist Methods
+    // ============================================
+
+    /**
+     * Check if the blacklist is enabled.
+     *
+     * @return true if enabled
+     */
+    public boolean isBlacklistEnabled() {
+        return mainConfig != null && mainConfig.getBlacklistEnabled();
+    }
+
+    /**
+     * Get the blacklist message.
+     *
+     * @return The formatted blacklist message
+     */
+    public String getBlacklistMessage() {
+        if (mainConfig == null) return "&cThis item cannot be stored!";
+        return mainConfig.getBlacklistMessage().replace("&", "§");
+    }
 }

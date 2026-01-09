@@ -88,7 +88,7 @@ public class EnderChestListener implements Listener {
         Integer currentPage = plugin.getEnderChestManager().getOpenEnderPageNumber(player);
         if (currentPage == null) return;
 
-        com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        com.vaultpack.data.holders.PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         switch (slot) {
             case 0: // Close button
@@ -170,7 +170,7 @@ public class EnderChestListener implements Listener {
     /**
      * Find the first unlocked ender page
      */
-    private int findFirstPage(com.vaultpack.models.PlayerBackpackData data) {
+    private int findFirstPage(com.vaultpack.data.holders.PlayerDataHolder data) {
         for (int i = 1; i <= 9; i++) {
             if (data.isEnderPageUnlocked(i)) {
                 return i;
@@ -182,7 +182,7 @@ public class EnderChestListener implements Listener {
     /**
      * Find the last unlocked ender page
      */
-    private int findLastPage(com.vaultpack.models.PlayerBackpackData data) {
+    private int findLastPage(com.vaultpack.data.holders.PlayerDataHolder data) {
         for (int i = 9; i >= 1; i--) {
             if (data.isEnderPageUnlocked(i)) {
                 return i;
@@ -194,7 +194,7 @@ public class EnderChestListener implements Listener {
     /**
      * Find the previous unlocked ender page before the current one
      */
-    private int findPreviousPage(com.vaultpack.models.PlayerBackpackData data, int currentPage) {
+    private int findPreviousPage(com.vaultpack.data.holders.PlayerDataHolder data, int currentPage) {
         for (int i = currentPage - 1; i >= 1; i--) {
             if (data.isEnderPageUnlocked(i)) {
                 return i;
@@ -206,7 +206,7 @@ public class EnderChestListener implements Listener {
     /**
      * Find the next unlocked ender page after the current one
      */
-    private int findNextPage(com.vaultpack.models.PlayerBackpackData data, int currentPage) {
+    private int findNextPage(com.vaultpack.data.holders.PlayerDataHolder data, int currentPage) {
         for (int i = currentPage + 1; i <= 9; i++) {
             if (data.isEnderPageUnlocked(i)) {
                 return i;

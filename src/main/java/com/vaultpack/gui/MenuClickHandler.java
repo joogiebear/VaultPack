@@ -95,7 +95,7 @@ public class MenuClickHandler implements Listener {
             if (enderIndex != -1) {
                 // Clicked on an ender page
                 int pageNumber = enderIndex + 1;
-                com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+                com.vaultpack.data.holders.PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
                 // Check if page is locked
                 if (!data.isEnderPageUnlocked(pageNumber)) {
@@ -126,7 +126,7 @@ public class MenuClickHandler implements Listener {
             if (backpackIndex != -1) {
                 // Clicked on a backpack slot
                 int slotNumber = backpackIndex + 1;
-                com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+                com.vaultpack.data.holders.PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
                 // Check if slot is locked
                 if (!data.isSlotUnlocked(slotNumber)) {
@@ -211,7 +211,7 @@ public class MenuClickHandler implements Listener {
         }
 
         int slotNumber = backpackIndex + 1;
-        com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        com.vaultpack.data.holders.PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         // Check if slot is unlocked
         if (!data.isSlotUnlocked(slotNumber)) {
@@ -243,7 +243,7 @@ public class MenuClickHandler implements Listener {
             com.vaultpack.types.BackpackType backpackType = plugin.getBackpackTypeManager().getBackpackType(backpackTypeId);
 
             if (backpackType == null) {
-                plugin.getMessageManager().send(player, "backpack-type-unknown", "%type%", backpackTypeId);
+                plugin.getMessageManager().send(player, "backpack-type-unknown", "type", backpackTypeId);
                 return true;
             }
 
@@ -285,9 +285,8 @@ public class MenuClickHandler implements Listener {
 
             return true;
         } catch (Exception e) {
-            plugin.getMessageManager().send(player, "backpack-place-error", "%error%", e.getMessage());
+            plugin.getMessageManager().send(player, "backpack-place-error", "error", e.getMessage());
             plugin.getLogger().warning("Failed to place backpack: " + e.getMessage());
-            e.printStackTrace();
             return true;
         }
     }
@@ -323,7 +322,7 @@ public class MenuClickHandler implements Listener {
             com.vaultpack.types.BackpackType backpackType = plugin.getBackpackTypeManager().getBackpackType(backpackTypeId);
 
             if (backpackType == null) {
-                plugin.getMessageManager().send(player, "backpack-type-unknown", "%type%", backpackTypeId);
+                plugin.getMessageManager().send(player, "backpack-type-unknown", "type", backpackTypeId);
                 return;
             }
 
@@ -331,7 +330,7 @@ public class MenuClickHandler implements Listener {
             org.bukkit.inventory.ItemStack backpackItem = plugin.getBackpackTypeManager().createBackpackItem(backpackType);
 
             // Remove backpack from data
-            com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+            com.vaultpack.data.holders.PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
             data.setBackpack(slotNumber, null);
             plugin.getDataManager().savePlayerData(player.getUniqueId());
 
@@ -358,9 +357,8 @@ public class MenuClickHandler implements Listener {
             playSound(player, "ENTITY_ITEM_PICKUP");
 
         } catch (Exception e) {
-            plugin.getMessageManager().send(player, "backpack-remove-error", "%error%", e.getMessage());
+            plugin.getMessageManager().send(player, "backpack-remove-error", "error", e.getMessage());
             plugin.getLogger().warning("Failed to remove backpack: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -416,7 +414,7 @@ public class MenuClickHandler implements Listener {
     private void openMenu(Player player, String menuId) {
         MenuConfig menu = plugin.getMenuManager().getMenu(menuId);
         if (menu == null) {
-            plugin.getMessageManager().send(player, "menu-not-found", "%menu%", menuId);
+            plugin.getMessageManager().send(player, "menu-not-found", "menu", menuId);
             return;
         }
 
@@ -439,7 +437,7 @@ public class MenuClickHandler implements Listener {
                 break;
 
             default:
-                plugin.getMessageManager().send(player, "menu-not-implemented", "%menu%", menuId);
+                plugin.getMessageManager().send(player, "menu-not-implemented", "menu", menuId);
                 break;
         }
     }

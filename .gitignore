@@ -156,3 +156,15 @@ yarn-error.log*
 .claude/
 Aurora/
 GitBook/
+
+# Analysis and documentation files (local only)
+ANALYSIS_README.md
+AURORA_COMPARISON.md
+AURORA_MIGRATION_GUIDE.md
+FOLIA_COMPATIBILITY_ANALYSIS.md
+FOLIA_CRITICAL_ISSUES_SUMMARY.md
+FOLIA_QUICK_REFERENCE.txt
+TESTING_CHECKLIST.md
+*_ANALYSIS.md
+*_SUMMARY.md
+*_GUIDE.md

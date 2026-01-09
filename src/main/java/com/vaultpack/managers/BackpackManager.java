@@ -4,7 +4,7 @@ import com.vaultpack.VaultPackPlugin;
 import com.vaultpack.models.Backpack;
 import com.vaultpack.models.BackpackTier;
 import com.vaultpack.models.GUIItem;
-import com.vaultpack.models.PlayerBackpackData;
+import com.vaultpack.data.holders.PlayerDataHolder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
@@ -59,7 +59,7 @@ public class BackpackManager {
             return;
         }
 
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         // Check if slot is unlocked
         if (!data.isSlotUnlocked(slotNumber)) {
@@ -121,7 +121,7 @@ public class BackpackManager {
     }
 
     private void saveBackpackContents(Player player, int slotNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         Backpack backpack = data.getBackpack(slotNumber);
 
         if (backpack != null && backpack.getActiveInventory() != null) {
@@ -167,14 +167,14 @@ public class BackpackManager {
             return;
         }
 
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         Backpack backpack = new Backpack(player.getUniqueId(), slotNumber, tier);
         data.setBackpack(slotNumber, backpack);
 
         plugin.getDataManager().savePlayerData(player.getUniqueId());
 
-        plugin.getMessageManager().send(player, "backpack-placed", "%slot%", String.valueOf(slotNumber));
+        plugin.getMessageManager().send(player, "backpack-placed", "slot", String.valueOf(slotNumber));
     }
 
     /**
@@ -193,18 +193,18 @@ public class BackpackManager {
             return;
         }
 
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         Backpack backpack = new Backpack(player.getUniqueId(), slotNumber, tier, backpackTypeId);
         data.setBackpack(slotNumber, backpack);
 
         plugin.getDataManager().savePlayerData(player.getUniqueId());
 
-        plugin.getMessageManager().send(player, "backpack-placed", "%slot%", String.valueOf(slotNumber));
+        plugin.getMessageManager().send(player, "backpack-placed", "slot", String.valueOf(slotNumber));
     }
 
     public void removeBackpack(Player player, int slotNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         Backpack backpack = data.getBackpack(slotNumber);
 
         if (backpack == null) {
@@ -237,7 +237,7 @@ public class BackpackManager {
             data.removeBackpack(slotNumber);
             plugin.getDataManager().savePlayerData(player.getUniqueId());
 
-            plugin.getMessageManager().send(player, "backpack-removed", "%slot%", String.valueOf(slotNumber));
+            plugin.getMessageManager().send(player, "backpack-removed", "slot", String.valueOf(slotNumber));
         } else {
             // First click - ask for confirmation
             pendingRemovals.put(player.getUniqueId(), new RemovalConfirmation(slotNumber));
@@ -247,7 +247,7 @@ public class BackpackManager {
     }
 
     public void upgradeBackpack(Player player, int slotNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         Backpack backpack = data.getBackpack(slotNumber);
 
         if (backpack == null) {
@@ -267,7 +267,7 @@ public class BackpackManager {
         int cost = plugin.getConfigManager().getUpgradeCost(oldTier, newTier);
         if (cost > 0 && plugin.isVaultEnabled()) {
             if (!plugin.getEconomyManager().hasMoney(player, cost)) {
-                plugin.getMessageManager().send(player, "backpack-upgrade-fail", "%cost%", String.valueOf(cost));
+                plugin.getMessageManager().send(player, "backpack-upgrade-fail", "cost", String.valueOf(cost));
                 return;
             }
 
@@ -297,7 +297,7 @@ public class BackpackManager {
             return;
         }
 
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         if (data.isSlotUnlocked(slotNumber)) {
             plugin.getMessageManager().send(player, "slot-already-unlocked");
@@ -310,7 +310,7 @@ public class BackpackManager {
             if (player.hasPermission(permission)) {
                 data.unlockSlot(slotNumber);
                 plugin.getDataManager().savePlayerData(player.getUniqueId());
-                plugin.getMessageManager().send(player, "slot-unlocked", "%slot%", String.valueOf(slotNumber));
+                plugin.getMessageManager().send(player, "slot-unlocked", "slot", String.valueOf(slotNumber));
                 return;
             }
         }
@@ -320,14 +320,14 @@ public class BackpackManager {
             int cost = plugin.getConfigManager().getSlotUnlockCost(slotNumber);
 
             if (!plugin.getEconomyManager().hasMoney(player, cost)) {
-                plugin.getMessageManager().send(player, "slot-unlock-fail", "%cost%", String.valueOf(cost));
+                plugin.getMessageManager().send(player, "slot-unlock-fail", "cost", String.valueOf(cost));
                 return;
             }
 
             plugin.getEconomyManager().takeMoney(player, cost);
             data.unlockSlot(slotNumber);
             plugin.getDataManager().savePlayerData(player.getUniqueId());
-            plugin.getMessageManager().send(player, "slot-unlocked", "%slot%", String.valueOf(slotNumber));
+            plugin.getMessageManager().send(player, "slot-unlocked", "slot", String.valueOf(slotNumber));
         } else {
             plugin.getMessageManager().send(player, "slot-unlock-no-permission");
         }
@@ -336,7 +336,7 @@ public class BackpackManager {
     /**
      * v2.0.0: Create an ItemStack from a GUI item config with placeholder replacement
      */
-    private ItemStack createCustomGUIItem(GUIItem guiItem, Player player, PlayerBackpackData data) {
+    private ItemStack createCustomGUIItem(GUIItem guiItem, Player player, PlayerDataHolder data) {
         ItemStack item = new ItemStack(guiItem.getMaterial());
         org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
 
@@ -372,7 +372,7 @@ public class BackpackManager {
     /**
      * v2.0.0: Replace placeholders in GUI text
      */
-    private String replacePlaceholders(String text, Player player, PlayerBackpackData data) {
+    private String replacePlaceholders(String text, Player player, PlayerDataHolder data) {
         return text
                 .replace("%player%", player.getName())
                 .replace("%backpack_used%", String.valueOf(data.getTotalUsedSlots()))
@@ -396,7 +396,7 @@ public class BackpackManager {
     /**
      * Create an ender page slot item for the GUI
      */
-    private ItemStack createEnderPageSlotItem(Player player, PlayerBackpackData data, int pageNumber) {
+    private ItemStack createEnderPageSlotItem(Player player, PlayerDataHolder data, int pageNumber) {
         boolean unlocked = data.isEnderPageUnlocked(pageNumber);
         boolean hasPage = data.hasEnderPage(pageNumber);
 
@@ -466,7 +466,7 @@ public class BackpackManager {
      * Old backpack menu (kept for compatibility)
      */
     public void openLegacyBackpackMenu(Player player) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         // Create main backpack selection GUI
         int rows = 6;
@@ -536,7 +536,7 @@ public class BackpackManager {
         player.openInventory(inventory);
     }
 
-    private ItemStack createSlotItem(Player player, PlayerBackpackData data, int slotNumber) {
+    private ItemStack createSlotItem(Player player, PlayerDataHolder data, int slotNumber) {
         boolean unlocked = data.isSlotUnlocked(slotNumber);
         boolean hasBackpack = data.hasBackpack(slotNumber);
 
