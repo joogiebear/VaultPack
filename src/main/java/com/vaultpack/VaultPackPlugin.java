@@ -31,8 +31,7 @@ public class VaultPackPlugin extends JavaPlugin {
 
     // Managers
     private ConfigManager configManager;
-    private com.vaultpack.managers.MessageManager messageManager;  // Message system (Phase 3: Enhanced with Adventure API)
-    private com.vaultpack.managers.AdventureMessageManager adventureMessageManager;  // Phase 3: Pure Component-based messaging (optional)
+    private com.vaultpack.messages.MessageManager messageManager;  // Phase 4: Modern Adventure API message system
     private com.vaultpack.config.MenuManager menuManager;  // v1.0.0: Menu system
     private BackpackDataManager dataManager;
     private BackpackManager backpackManager;
@@ -102,11 +101,8 @@ public class VaultPackPlugin extends JavaPlugin {
         configManager = new ConfigManager(this);
         configManager.loadConfig();
 
-        // Message manager - Load messages from lang.yml (Phase 3: Enhanced with Adventure API support)
-        messageManager = new com.vaultpack.managers.MessageManager(this);
-
-        // Adventure Message manager - Pure Component-based messaging (Phase 3: Optional for advanced usage)
-        adventureMessageManager = new com.vaultpack.managers.AdventureMessageManager(this);
+        // Phase 4: Modern Message manager with Adventure API and MiniMessage
+        messageManager = new com.vaultpack.messages.MessageManager(this);
 
         // Validate configuration
         com.vaultpack.utils.ConfigValidator validator = new com.vaultpack.utils.ConfigValidator(this);
@@ -271,9 +267,8 @@ public class VaultPackPlugin extends JavaPlugin {
         // Reload config
         configManager.loadConfig();
 
-        // Reload messages
+        // Reload messages (Phase 4: Modern message system)
         messageManager.reload();
-        adventureMessageManager.reload();
 
         // Reload menus (v1.0.0)
         menuManager.reloadMenus();
@@ -294,18 +289,14 @@ public class VaultPackPlugin extends JavaPlugin {
         return configManager;
     }
 
-    public com.vaultpack.managers.MessageManager getMessageManager() {
-        return messageManager;
-    }
-
     /**
-     * Get the Adventure Message Manager for pure Component-based messaging (Phase 3)
-     * Use this for advanced text formatting with gradients, hover, click events, etc.
+     * Get the Message Manager for modern Component-based messaging (Phase 4).
+     * Uses Adventure API with MiniMessage for gradients, hover, click events, etc.
      *
-     * @return AdventureMessageManager instance
+     * @return MessageManager instance
      */
-    public com.vaultpack.managers.AdventureMessageManager getAdventureMessageManager() {
-        return adventureMessageManager;
+    public com.vaultpack.messages.MessageManager getMessageManager() {
+        return messageManager;
     }
 
     public BackpackDataManager getDataManager() {
