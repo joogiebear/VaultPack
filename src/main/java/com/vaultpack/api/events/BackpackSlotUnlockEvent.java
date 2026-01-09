@@ -1,6 +1,5 @@
 package com.vaultpack.api.events;
 
-import com.vaultpack.models.Backpack;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.Player;
@@ -10,26 +9,26 @@ import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Called when a player opens a backpack.
+ * Called when a player unlocks a backpack slot.
  * This event is cancellable.
  *
  * @since 3.0.0
  */
 @Getter
-public class BackpackOpenEvent extends PlayerEvent implements Cancellable {
+public class BackpackSlotUnlockEvent extends PlayerEvent implements Cancellable {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final int slot;
-    private final Backpack backpack;
+    private final int cost;
 
     @Setter
     private boolean cancelled = false;
 
-    public BackpackOpenEvent(@NotNull Player player, int slot, @NotNull Backpack backpack) {
+    public BackpackSlotUnlockEvent(@NotNull Player player, int slot, int cost) {
         super(player);
         this.slot = slot;
-        this.backpack = backpack;
+        this.cost = cost;
     }
 
     @NotNull

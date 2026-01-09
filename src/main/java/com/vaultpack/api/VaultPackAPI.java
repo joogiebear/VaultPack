@@ -1,10 +1,10 @@
 package com.vaultpack.api;
 
 import com.vaultpack.VaultPackPlugin;
+import com.vaultpack.data.holders.PlayerDataHolder;
 import com.vaultpack.models.Backpack;
 import com.vaultpack.models.BackpackTier;
 import com.vaultpack.models.EnderPage;
-import com.vaultpack.models.PlayerBackpackData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -20,14 +20,18 @@ import java.util.UUID;
  * if (api.hasBackpack(player, 1)) {
  *     api.openBackpack(player, 1);
  * }
+ *
+ * @version 3.0.0
  */
 public class VaultPackAPI {
 
     private static VaultPackAPI instance;
     private final VaultPackPlugin plugin;
+    private final VaultPackAPIImpl apiImpl;
 
     private VaultPackAPI(VaultPackPlugin plugin) {
         this.plugin = plugin;
+        this.apiImpl = new VaultPackAPIImpl(plugin);
     }
 
     /**
@@ -47,6 +51,24 @@ public class VaultPackAPI {
         return instance;
     }
 
+    /**
+     * Get the backpack API
+     * @return BackpackAPI instance
+     * @since 3.0.0
+     */
+    public BackpackAPI getBackpackAPI() {
+        return apiImpl.getBackpackAPI();
+    }
+
+    /**
+     * Get the ender chest API
+     * @return EnderChestAPI instance
+     * @since 3.0.0
+     */
+    public EnderChestAPI getEnderChestAPI() {
+        return apiImpl.getEnderChestAPI();
+    }
+
     // ========== Backpack Management ==========
 
     /**
@@ -56,7 +78,7 @@ public class VaultPackAPI {
      * @return true if the player has a backpack in that slot
      */
     public boolean hasBackpack(Player player, int slotNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         return data.hasBackpack(slotNumber);
     }
 
@@ -67,7 +89,7 @@ public class VaultPackAPI {
      * @return true if the player has a backpack in that slot
      */
     public boolean hasBackpack(UUID uuid, int slotNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(uuid);
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(uuid);
         return data.hasBackpack(slotNumber);
     }
 
@@ -105,7 +127,7 @@ public class VaultPackAPI {
      * @return Map of slot index to ItemStack, or null if no backpack exists
      */
     public Map<Integer, ItemStack> getBackpackContents(Player player, int slotNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         Backpack backpack = data.getBackpack(slotNumber);
         return backpack != null ? backpack.getContents() : null;
     }
@@ -117,7 +139,7 @@ public class VaultPackAPI {
      * @return Map of slot index to ItemStack, or null if no backpack exists
      */
     public Map<Integer, ItemStack> getBackpackContents(UUID uuid, int slotNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(uuid);
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(uuid);
         Backpack backpack = data.getBackpack(slotNumber);
         return backpack != null ? backpack.getContents() : null;
     }
@@ -129,7 +151,7 @@ public class VaultPackAPI {
      * @return The size in slots, or 0 if no backpack exists
      */
     public int getBackpackSize(Player player, int slotNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         Backpack backpack = data.getBackpack(slotNumber);
         return backpack != null ? backpack.getSize() : 0;
     }
@@ -141,7 +163,7 @@ public class VaultPackAPI {
      * @return The BackpackTier, or null if no backpack exists
      */
     public BackpackTier getBackpackTier(Player player, int slotNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         Backpack backpack = data.getBackpack(slotNumber);
         return backpack != null ? backpack.getTier() : null;
     }
@@ -155,7 +177,7 @@ public class VaultPackAPI {
      * @return true if the slot is unlocked
      */
     public boolean isSlotUnlocked(Player player, int slotNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         return data.isSlotUnlocked(slotNumber);
     }
 
@@ -165,7 +187,7 @@ public class VaultPackAPI {
      * @param slotNumber The slot number (1-18)
      */
     public void unlockSlot(Player player, int slotNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         data.unlockSlot(slotNumber);
         plugin.getDataManager().savePlayerData(player.getUniqueId());
     }
@@ -176,7 +198,7 @@ public class VaultPackAPI {
      * @return The number of unlocked slots
      */
     public int getUnlockedSlots(Player player) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         return data.getUnlockedSlots();
     }
 
@@ -188,7 +210,7 @@ public class VaultPackAPI {
      * @return The number of backpacks placed in slots
      */
     public int getActiveBackpackCount(Player player) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         return data.getActiveBackpackCount();
     }
 
@@ -198,7 +220,7 @@ public class VaultPackAPI {
      * @return The total number of storage slots
      */
     public int getTotalStorageSlots(Player player) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         return data.getTotalStorageSlots();
     }
 
@@ -208,15 +230,8 @@ public class VaultPackAPI {
      * @return The number of used slots
      */
     public int getTotalUsedSlots(Player player) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
-        int usedSlots = 0;
-        for (int i = 1; i <= 18; i++) {
-            Backpack backpack = data.getBackpack(i);
-            if (backpack != null) {
-                usedSlots += backpack.getUsedSlots();
-            }
-        }
-        return usedSlots;
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        return data.getTotalUsedSlots();
     }
 
     // ========== Ender Chest Management (v2.0.0) ==========
@@ -228,7 +243,7 @@ public class VaultPackAPI {
      * @return true if the ender page is unlocked
      */
     public boolean isEnderPageUnlocked(Player player, int pageNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         return data.isEnderPageUnlocked(pageNumber);
     }
 
@@ -239,7 +254,7 @@ public class VaultPackAPI {
      * @return true if the ender page is unlocked
      */
     public boolean isEnderPageUnlocked(UUID uuid, int pageNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(uuid);
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(uuid);
         return data.isEnderPageUnlocked(pageNumber);
     }
 
@@ -249,7 +264,7 @@ public class VaultPackAPI {
      * @return The number of unlocked ender pages
      */
     public int getUnlockedEnderPages(Player player) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         return data.getUnlockedEnderPages();
     }
 
@@ -259,7 +274,7 @@ public class VaultPackAPI {
      * @param pageNumber The page number (1-9)
      */
     public void unlockEnderPage(Player player, int pageNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         data.unlockEnderPage(pageNumber);
         plugin.getDataManager().savePlayerData(player.getUniqueId());
     }
@@ -280,7 +295,7 @@ public class VaultPackAPI {
      * @return Map of slot index to ItemStack, or null if page doesn't exist
      */
     public Map<Integer, ItemStack> getEnderPageContents(Player player, int pageNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         EnderPage enderPage = data.getEnderPage(pageNumber);
         return enderPage != null ? enderPage.getContents() : null;
     }
@@ -292,7 +307,7 @@ public class VaultPackAPI {
      * @return Map of slot index to ItemStack, or null if page doesn't exist
      */
     public Map<Integer, ItemStack> getEnderPageContents(UUID uuid, int pageNumber) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(uuid);
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(uuid);
         EnderPage enderPage = data.getEnderPage(pageNumber);
         return enderPage != null ? enderPage.getContents() : null;
     }
@@ -303,7 +318,7 @@ public class VaultPackAPI {
      * @return The total number of ender storage slots (unlocked pages * 45)
      */
     public int getTotalEnderStorageSlots(Player player) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         return data.getTotalEnderStorageSlots();
     }
 
@@ -313,15 +328,8 @@ public class VaultPackAPI {
      * @return The number of used ender slots
      */
     public int getTotalUsedEnderSlots(Player player) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
-        int usedSlots = 0;
-        for (int i = 1; i <= 9; i++) {
-            EnderPage enderPage = data.getEnderPage(i);
-            if (enderPage != null) {
-                usedSlots += enderPage.getUsedSlots();
-            }
-        }
-        return usedSlots;
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        return data.getTotalUsedEnderSlots();
     }
 
     /**

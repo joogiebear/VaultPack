@@ -314,4 +314,14 @@ public class BackpackDataManager {
     public LoadingState getLoadingState(UUID playerId) {
         return loadingStates.getOrDefault(playerId, LoadingState.NOT_LOADED);
     }
+
+    /**
+     * Check if a player's data is currently loaded.
+     *
+     * @param playerId Player UUID
+     * @return true if data is loaded, false otherwise
+     */
+    public boolean isDataLoaded(UUID playerId) {
+        return loadingStates.get(playerId) == LoadingState.LOADED;
+    }
 }
