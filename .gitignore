@@ -151,3 +151,8 @@ yarn-error.log*
 # Keep example configs
 !src/main/resources/*.yml
 !src/main/resources/menus/*.yml
+
+# Local development folders (keep out of repo)
+.claude/
+Aurora/
+GitBook/

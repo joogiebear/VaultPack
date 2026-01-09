@@ -1,5 +1,0 @@
-recipes:
-  - id: brewing_test
-    input: "minecraft:diamond"
-    ingredient: "minecraft:emerald"
-    result: "minecraft:golden_apple"
