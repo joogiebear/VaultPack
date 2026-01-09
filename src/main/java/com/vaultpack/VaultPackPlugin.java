@@ -38,6 +38,7 @@ public class VaultPackPlugin extends JavaPlugin {
     private EconomyManager economyManager;
     private BackpackTypeManager backpackTypeManager;
     private com.vaultpack.managers.EnderChestManager enderChestManager; // v2.0.0
+    private com.vaultpack.managers.ExpansionManager expansionManager; // Phase 7: Expansion system
 
     // Economy
     private Economy economy = null;
@@ -73,6 +74,9 @@ public class VaultPackPlugin extends JavaPlugin {
         // Load player data
         dataManager.loadAllData();
 
+        // Phase 7: Register expansions
+        registerExpansions();
+
         logger.info("VaultPack v" + getDescription().getVersion() + " enabled successfully!");
         logger.info("Vault: " + (vaultEnabled ? "✓" : "✗") + " | PlaceholderAPI: " + (placeholderAPIEnabled ? "✓" : "✗"));
     }
@@ -82,6 +86,11 @@ public class VaultPackPlugin extends JavaPlugin {
         // Cancel all scheduled tasks (Folia-compatible)
         Bukkit.getGlobalRegionScheduler().cancelTasks(this);
         Bukkit.getAsyncScheduler().cancelTasks(this);
+
+        // Phase 7: Disable all expansions
+        if (expansionManager != null) {
+            expansionManager.disableAll();
+        }
 
         // Save all data
         if (dataManager != null) {
@@ -130,6 +139,9 @@ public class VaultPackPlugin extends JavaPlugin {
 
         // Ender Chest manager (v2.0.0)
         enderChestManager = new com.vaultpack.managers.EnderChestManager(this);
+
+        // Phase 7: Expansion manager
+        expansionManager = new com.vaultpack.managers.ExpansionManager(this);
     }
 
     /**
@@ -261,6 +273,20 @@ public class VaultPackPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new com.vaultpack.gui.MenuClickHandler(this), this); // v1.0.0: Menu system click handler
     }
 
+    /**
+     * Phase 7: Register expansions
+     * Built-in expansions that extend VaultPack functionality.
+     */
+    private void registerExpansions() {
+        // Register built-in expansions
+        if (configManager.isDebugMode()) {
+            // Only enable logging expansion in debug mode
+            expansionManager.registerExpansion(new com.vaultpack.expansions.LoggingExpansion());
+        }
+
+        logger.info("Registered " + expansionManager.getExpansions().size() + " expansion(s)");
+    }
+
     public void reload() {
         logger.info("Reloading VaultPack...");
 
@@ -333,5 +359,15 @@ public class VaultPackPlugin extends JavaPlugin {
 
     public com.vaultpack.config.MenuManager getMenuManager() {
         return menuManager;
+    }
+
+    /**
+     * Get the Expansion Manager (Phase 7).
+     * Manages registration and lifecycle of plugin expansions.
+     *
+     * @return ExpansionManager instance
+     */
+    public com.vaultpack.managers.ExpansionManager getExpansionManager() {
+        return expansionManager;
     }
 }
