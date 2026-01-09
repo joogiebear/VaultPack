@@ -93,7 +93,7 @@ public class VaultPackCommand extends BaseCommand {
     @Description("Give a player a backpack slot")
     @CommandCompletion("@players @backpackSlots")
     @Syntax("<player> <slot>")
-    public void onGive(CommandSender sender, Player target, int slot) {
+    public void onGive(CommandSender sender, @Flags("other") Player target, int slot) {
         if (slot < 1 || slot > plugin.getConfigManager().getMaxBackpackSlots()) {
             plugin.getMessageManager().send(sender, "invalid-slot",
                 "%max%", String.valueOf(plugin.getConfigManager().getMaxBackpackSlots()));
@@ -120,7 +120,7 @@ public class VaultPackCommand extends BaseCommand {
     @Description("Give a player a backpack item")
     @CommandCompletion("@players @backpackTypes @range:1-64 @nothing")
     @Syntax("<player> <type> [amount]")
-    public void onGiveItem(CommandSender sender, Player target, String backpackTypeId, @Default("1") Integer amount) {
+    public void onGiveItem(CommandSender sender, @Flags("other") Player target, String backpackTypeId, @Default("1") Integer amount) {
         giveBackpackItem(sender, target, backpackTypeId, amount);
     }
 
@@ -187,7 +187,7 @@ public class VaultPackCommand extends BaseCommand {
     @Description("Clear a player's backpack")
     @CommandCompletion("@players @backpackSlots")
     @Syntax("<player> <slot>")
-    public void onClear(CommandSender sender, Player target, int slot) {
+    public void onClear(CommandSender sender, @Flags("other") Player target, int slot) {
         PlayerDataHolder data = plugin.getDataManager().getPlayerData(target.getUniqueId());
 
         if (data.hasBackpack(slot)) {
@@ -266,7 +266,7 @@ public class VaultPackCommand extends BaseCommand {
     @Description("Inspect a player's backpacks and ender chests")
     @CommandCompletion("@players")
     @Syntax("<player>")
-    public void onInspect(CommandSender sender, Player target) {
+    public void onInspect(CommandSender sender, @Flags("other") Player target) {
         PlayerDataHolder data = plugin.getDataManager().getPlayerData(target.getUniqueId());
 
         // Display inspect header
