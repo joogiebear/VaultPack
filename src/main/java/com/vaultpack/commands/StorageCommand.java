@@ -1,22 +1,18 @@
 package com.vaultpack.commands;
 
+import co.aikar.commands.BaseCommand;
+import co.aikar.commands.annotation.*;
 import com.vaultpack.VaultPackPlugin;
 import com.vaultpack.gui.StorageMenuGUI;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * v1.0.0: /storage command
- * Opens the unified storage GUI (menus/storage.yml)
+ * ACF-based storage command.
+ * Opens the unified storage GUI (menus/storage.yml).
  */
-public class StorageCommand implements CommandExecutor, TabCompleter {
+@CommandAlias("storage|vault")
+@Description("Open the unified storage menu")
+public class StorageCommand extends BaseCommand {
 
     private final VaultPackPlugin plugin;
     private final StorageMenuGUI storageGUI;
@@ -26,28 +22,32 @@ public class StorageCommand implements CommandExecutor, TabCompleter {
         this.storageGUI = new StorageMenuGUI(plugin);
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            plugin.getMessageManager().send(sender, "command-player-only");
-            return true;
-        }
-
-        Player player = (Player) sender;
-
-        // Check permission
-        if (!player.hasPermission("vaultpack.use")) {
-            plugin.getMessageManager().send(player, "no-permission");
-            return true;
-        }
-
-        // Open the unified storage GUI
+    /**
+     * Default command - opens unified storage GUI.
+     * Usage: /storage
+     */
+    @Default
+    @CommandPermission("vaultpack.use")
+    @Description("Open your unified storage menu")
+    public void onDefault(Player player) {
         storageGUI.open(player);
-        return true;
     }
 
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return new ArrayList<>();
+    /**
+     * Show storage command help.
+     * Usage: /storage help
+     */
+    @Subcommand("help")
+    @Description("Show storage command help")
+    @HelpCommand
+    public void onHelp(Player player) {
+        player.sendMessage("§8§m                                               ");
+        player.sendMessage("§6§lVaultPack Storage");
+        player.sendMessage("");
+        player.sendMessage("§e/storage §7- Open unified storage menu");
+        player.sendMessage("§e/storage help §7- Show this help message");
+        player.sendMessage("");
+        player.sendMessage("§7Access all your backpacks and ender chests in one place!");
+        player.sendMessage("§8§m                                               ");
     }
 }

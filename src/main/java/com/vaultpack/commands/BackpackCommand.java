@@ -1,18 +1,19 @@
 package com.vaultpack.commands;
 
+import co.aikar.commands.BaseCommand;
+import co.aikar.commands.annotation.*;
 import com.vaultpack.VaultPackPlugin;
 import com.vaultpack.gui.BackpackSelectorGUI;
 import com.vaultpack.models.PlayerBackpackData;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class BackpackCommand implements CommandExecutor, TabCompleter {
+/**
+ * ACF-based backpack command.
+ * Handles all backpack-related player commands using modern annotation-based approach.
+ */
+@CommandAlias("backpack|bp")
+@Description("Manage your backpacks")
+public class BackpackCommand extends BaseCommand {
 
     private final VaultPackPlugin plugin;
     private final BackpackSelectorGUI backpackGUI;
@@ -22,121 +23,68 @@ public class BackpackCommand implements CommandExecutor, TabCompleter {
         this.backpackGUI = new BackpackSelectorGUI(plugin);
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // /backpack - open menu
-        if (args.length == 0) {
-            if (!(sender instanceof Player)) {
-                plugin.getMessageManager().send(sender, "command-player-only");
-                return true;
-            }
-
-            Player player = (Player) sender;
-
-            if (!player.hasPermission("vaultpack.use")) {
-                plugin.getMessageManager().send(player, "no-permission");
-                return true;
-            }
-
-            // Open backpack selector GUI (v1.0.0 - uses menus/backpack_selector.yml)
-            backpackGUI.open(player);
-            return true;
-        }
-
-        // v2.0.0: /backpack [slot] - open specific backpack slot
-        // Check if first arg is a number (slot number)
-        try {
-            int slotNumber = Integer.parseInt(args[0]);
-
-            if (!(sender instanceof Player)) {
-                plugin.getMessageManager().send(sender, "command-player-only");
-                return true;
-            }
-
-            Player player = (Player) sender;
-
-            if (!player.hasPermission("vaultpack.use")) {
-                plugin.getMessageManager().send(player, "no-permission");
-                return true;
-            }
-
-            // Validate slot number range
-            if (slotNumber < 1 || slotNumber > 18) {
-                plugin.getMessageManager().send(player, "invalid-slot", "%max%", "18");
-                return true;
-            }
-
-            // Check if slot is unlocked
-            PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
-            if (!data.isSlotUnlocked(slotNumber)) {
-                plugin.getMessageManager().send(player, "slot-locked");
-                return true;
-            }
-
-            // Check if backpack exists in that slot
-            if (!data.hasBackpack(slotNumber)) {
-                plugin.getMessageManager().send(player, "backpack-remove-fail");
-                return true;
-            }
-
-            // Open the backpack
-            plugin.getBackpackManager().openBackpack(player, slotNumber);
-            return true;
-
-        } catch (NumberFormatException ignored) {
-            // Not a number, continue to check other subcommands
-        }
-
-        // /backpack help
-        if (args[0].equalsIgnoreCase("help")) {
-            sendHelp(sender);
-            return true;
-        }
-
-        // Unknown command
-        sender.sendMessage(plugin.getMessageManager().getMessage("no-permission")); // Temporary - will use proper error message
-        return true;
+    /**
+     * Default command - opens backpack selector GUI.
+     * Usage: /backpack
+     */
+    @Default
+    @CommandPermission("vaultpack.use")
+    @Description("Open your backpack selector")
+    public void onDefault(Player player) {
+        backpackGUI.open(player);
     }
 
-    private void sendHelp(CommandSender sender) {
-        // Show appropriate help based on permission
-        String helpKey = "commands.help";
-        List<String> helpMessages = plugin.getMessageManager().getMessageList(helpKey);
-
-        for (String message : helpMessages) {
-            sender.sendMessage(message);
+    /**
+     * Open a specific backpack slot.
+     * Usage: /backpack <slot>
+     */
+    @Subcommand("open")
+    @CommandAlias("backpack")
+    @CommandPermission("vaultpack.use")
+    @Description("Open a specific backpack slot")
+    @CommandCompletion("@backpackSlots")
+    @Syntax("<slot> - Slot number (1-18)")
+    public void onOpenSlot(Player player, int slotNumber) {
+        // Validate slot number range
+        if (slotNumber < 1 || slotNumber > plugin.getConfigManager().getMaxBackpackSlots()) {
+            plugin.getMessageManager().send(player, "invalid-slot",
+                "%max%", String.valueOf(plugin.getConfigManager().getMaxBackpackSlots()));
+            return;
         }
 
-        // Show admin commands only to admins
-        if (sender.hasPermission("vaultpack.admin")) {
-            List<String> adminHint = plugin.getMessageManager().getMessageList("admin.help-admin-hint");
-            for (String message : adminHint) {
-                sender.sendMessage(message);
-            }
+        // Check if slot is unlocked
+        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        if (!data.isSlotUnlocked(slotNumber)) {
+            plugin.getMessageManager().send(player, "slot-locked");
+            return;
         }
+
+        // Check if backpack exists in that slot
+        if (!data.hasBackpack(slotNumber)) {
+            plugin.getMessageManager().send(player, "backpack-remove-fail");
+            return;
+        }
+
+        // Open the backpack
+        plugin.getBackpackManager().openBackpack(player, slotNumber);
     }
 
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
-        List<String> completions = new ArrayList<>();
-
-        if (args.length == 1) {
-            // Add slot numbers for /backpack [slot]
-            if (sender instanceof Player) {
-                Player player = (Player) sender;
-                PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
-
-                // Suggest unlocked backpack slots that have backpacks
-                for (int i = 1; i <= 18; i++) {
-                    if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
-                        completions.add(String.valueOf(i));
-                    }
-                }
-            }
-
-            completions.add("help");
-        }
-
-        return completions;
+    /**
+     * Show backpack command help.
+     * Usage: /backpack help
+     */
+    @Subcommand("help")
+    @Description("Show backpack command help")
+    @HelpCommand
+    public void onHelp(Player player) {
+        player.sendMessage("§8§m                                               ");
+        player.sendMessage("§6§lVaultPack Backpacks");
+        player.sendMessage("");
+        player.sendMessage("§e/backpack §7- Open backpack selector");
+        player.sendMessage("§e/backpack <slot> §7- Open specific backpack slot");
+        player.sendMessage("§e/backpack help §7- Show this help message");
+        player.sendMessage("");
+        player.sendMessage("§7Use the backpack selector GUI to manage your backpacks!");
+        player.sendMessage("§8§m                                               ");
     }
 }

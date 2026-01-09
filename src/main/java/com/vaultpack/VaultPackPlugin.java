@@ -1,5 +1,6 @@
 package com.vaultpack;
 
+import co.aikar.commands.PaperCommandManager;
 import com.vaultpack.commands.BackpackCommand;
 import com.vaultpack.commands.VaultPackCommand;
 import com.vaultpack.data.BackpackDataManager;
@@ -10,6 +11,7 @@ import com.vaultpack.managers.BackpackTypeManager;
 import com.vaultpack.managers.ConfigManager;
 import com.vaultpack.managers.EconomyManager;
 import com.vaultpack.placeholder.BackpackPlaceholder;
+import lombok.Getter;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -22,6 +24,10 @@ public class VaultPackPlugin extends JavaPlugin {
 
     private static VaultPackPlugin instance;
     private Logger logger;
+
+    // Phase 3: ACF Command Manager
+    @Getter
+    private PaperCommandManager commandManager;
 
     // Managers
     private ConfigManager configManager;
@@ -51,6 +57,9 @@ public class VaultPackPlugin extends JavaPlugin {
 
         // Initialize managers
         initializeManagers();
+
+        // Phase 3: Initialize ACF Command Manager
+        initializeACF();
 
         // Setup hooks
         setupVault();
@@ -127,6 +136,41 @@ public class VaultPackPlugin extends JavaPlugin {
         enderChestManager = new com.vaultpack.managers.EnderChestManager(this);
     }
 
+    /**
+     * Phase 3: Initialize ACF (Aikar's Command Framework)
+     * Sets up the modern command framework with annotations and auto-completion.
+     */
+    private void initializeACF() {
+        commandManager = new PaperCommandManager(this);
+
+        // Enable unstable API (required for some features)
+        commandManager.enableUnstableAPI("help");
+
+        // Register command contexts (custom parameter types)
+        // Example: @CommandAlias("backpack") public void cmd(Player player, @Values("@backpackSlots") int slot)
+        // This will be expanded in future phases
+
+        // Register command completions
+        commandManager.getCommandCompletions().registerAsyncCompletion("backpackSlots", c -> {
+            int maxSlots = configManager.getMaxBackpackSlots();
+            java.util.List<String> slots = new java.util.ArrayList<>();
+            for (int i = 1; i <= maxSlots; i++) {
+                slots.add(String.valueOf(i));
+            }
+            return slots;
+        });
+
+        commandManager.getCommandCompletions().registerAsyncCompletion("enderPages", c -> {
+            java.util.List<String> pages = new java.util.ArrayList<>();
+            for (int i = 1; i <= 5; i++) { // Max 5 pages for now
+                pages.add(String.valueOf(i));
+            }
+            return pages;
+        });
+
+        logger.info("ACF Command Framework initialized successfully");
+    }
+
     private void setupVault() {
         // Check for Vault, VaultUnlocked, or VaultUnlockedAPI
         Plugin vaultPlugin = getServer().getPluginManager().getPlugin("Vault");
@@ -198,26 +242,18 @@ public class VaultPackPlugin extends JavaPlugin {
         logger.info("PlaceholderAPI hooked successfully!");
     }
 
+    /**
+     * Phase 3: Register ACF commands
+     * All commands now use ACF (Aikar's Command Framework) for clean, annotation-based structure.
+     */
     private void registerCommands() {
-        // Main command
-        BackpackCommand backpackCommand = new BackpackCommand(this);
-        getCommand("backpack").setExecutor(backpackCommand);
-        getCommand("backpack").setTabCompleter(backpackCommand);
+        // Register ACF commands
+        commandManager.registerCommand(new BackpackCommand(this));
+        commandManager.registerCommand(new com.vaultpack.commands.EnderChestCommand(this));
+        commandManager.registerCommand(new com.vaultpack.commands.StorageCommand(this));
+        commandManager.registerCommand(new VaultPackCommand(this));
 
-        // v2.0.0: Ender chest command
-        com.vaultpack.commands.EnderChestCommand enderChestCommand = new com.vaultpack.commands.EnderChestCommand(this);
-        getCommand("enderchest").setExecutor(enderChestCommand);
-        getCommand("enderchest").setTabCompleter(enderChestCommand);
-
-        // v2.0.0: Storage command
-        com.vaultpack.commands.StorageCommand storageCommand = new com.vaultpack.commands.StorageCommand(this);
-        getCommand("storage").setExecutor(storageCommand);
-        getCommand("storage").setTabCompleter(storageCommand);
-
-        // Internal command
-        VaultPackCommand vaultPackCommand = new VaultPackCommand(this);
-        getCommand("vaultpack").setExecutor(vaultPackCommand);
-        getCommand("vaultpack").setTabCompleter(vaultPackCommand);
+        logger.info("Commands registered successfully using ACF");
     }
 
     private void registerListeners() {
