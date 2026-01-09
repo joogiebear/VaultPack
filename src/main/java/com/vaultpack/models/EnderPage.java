@@ -1,5 +1,6 @@
 package com.vaultpack.models;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -126,5 +127,58 @@ public class EnderPage {
      */
     public void clear() {
         contents.clear();
+    }
+
+    /**
+     * Serialize this ender page to a configuration section.
+     *
+     * @param section The configuration section to serialize to
+     */
+    public void serialize(ConfigurationSection section) {
+        section.set("owner", ownerUUID.toString());
+        section.set("page", pageNumber);
+
+        // Serialize contents
+        if (!contents.isEmpty()) {
+            ConfigurationSection contentsSection = section.createSection("contents");
+            for (Map.Entry<Integer, ItemStack> entry : contents.entrySet()) {
+                if (entry.getValue() != null) {
+                    contentsSection.set(String.valueOf(entry.getKey()), entry.getValue());
+                }
+            }
+        }
+    }
+
+    /**
+     * Deserialize an ender page from a configuration section.
+     *
+     * @param section The configuration section to deserialize from
+     * @return The deserialized ender page
+     */
+    public static EnderPage deserialize(ConfigurationSection section) {
+        UUID owner = UUID.fromString(section.getString("owner"));
+        int page = section.getInt("page");
+
+        EnderPage enderPage = new EnderPage(owner, page);
+
+        // Deserialize contents
+        ConfigurationSection contentsSection = section.getConfigurationSection("contents");
+        if (contentsSection != null) {
+            Map<Integer, ItemStack> contents = new HashMap<>();
+            for (String key : contentsSection.getKeys(false)) {
+                try {
+                    int slot = Integer.parseInt(key);
+                    ItemStack item = contentsSection.getItemStack(key);
+                    if (item != null) {
+                        contents.put(slot, item);
+                    }
+                } catch (NumberFormatException ignored) {
+                    // Skip invalid slot numbers
+                }
+            }
+            enderPage.setContents(contents);
+        }
+
+        return enderPage;
     }
 }

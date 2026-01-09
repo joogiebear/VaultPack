@@ -23,8 +23,8 @@ public class PlayerDataHolder extends BaseDataHolder {
         super(playerUUID);
 
         // Register components
-        this.backpackComponent = new BackpackDataComponent();
-        this.enderChestComponent = new EnderChestDataComponent();
+        this.backpackComponent = new BackpackDataComponent(playerUUID);
+        this.enderChestComponent = new EnderChestDataComponent(playerUUID);
 
         registerComponent(backpackComponent);
         registerComponent(enderChestComponent);

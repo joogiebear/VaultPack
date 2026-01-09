@@ -3,7 +3,7 @@ package com.vaultpack.commands;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
 import com.vaultpack.VaultPackPlugin;
-import com.vaultpack.models.PlayerBackpackData;
+import com.vaultpack.data.holders.PlayerDataHolder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -100,7 +100,7 @@ public class VaultPackCommand extends BaseCommand {
             return;
         }
 
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(target.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(target.getUniqueId());
         data.unlockSlot(slot);
         plugin.getDataManager().savePlayerData(target.getUniqueId());
 
@@ -181,7 +181,7 @@ public class VaultPackCommand extends BaseCommand {
     @CommandCompletion("@players @backpackSlots")
     @Syntax("<player> <slot>")
     public void onClear(CommandSender sender, Player target, int slot) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(target.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(target.getUniqueId());
 
         if (data.hasBackpack(slot)) {
             data.getBackpack(slot).getContents().clear();
@@ -260,7 +260,7 @@ public class VaultPackCommand extends BaseCommand {
     @CommandCompletion("@players")
     @Syntax("<player>")
     public void onInspect(CommandSender sender, Player target) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(target.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(target.getUniqueId());
 
         // Display inspect header
         List<String> headerMessages = plugin.getMessageManager().getMessageList("admin.inspect-header");

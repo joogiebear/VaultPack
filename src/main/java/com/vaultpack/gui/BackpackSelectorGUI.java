@@ -3,7 +3,7 @@ package com.vaultpack.gui;
 import com.vaultpack.VaultPackPlugin;
 import com.vaultpack.config.MenuConfig;
 import com.vaultpack.models.Backpack;
-import com.vaultpack.models.PlayerBackpackData;
+import com.vaultpack.data.holders.PlayerDataHolder;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -40,7 +40,7 @@ public class BackpackSelectorGUI {
             return;
         }
 
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         // Build placeholders
         Map<String, String> placeholders = new HashMap<>();
@@ -68,7 +68,7 @@ public class BackpackSelectorGUI {
     /**
      * Add all backpack slots to the menu
      */
-    private void addBackpackSlots(Inventory inv, Player player, PlayerBackpackData data, MenuConfig menuConfig) {
+    private void addBackpackSlots(Inventory inv, Player player, PlayerDataHolder data, MenuConfig menuConfig) {
         ConfigurationSection slotsSection = menuConfig.getConfig().getConfigurationSection("backpack-slots");
         if (slotsSection == null) return;
 
@@ -226,7 +226,7 @@ public class BackpackSelectorGUI {
         int slotNumber = getSlotNumberFromGUISlot(slot, menuConfig);
         if (slotNumber == -1) return;
 
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         boolean unlocked = slotNumber <= data.getUnlockedSlots();
         Backpack backpack = data.getBackpack(slotNumber);
 
@@ -332,7 +332,7 @@ public class BackpackSelectorGUI {
             return;
         }
 
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         // Check if slot already has a backpack
         if (data.hasBackpack(slotNumber)) {
@@ -358,7 +358,7 @@ public class BackpackSelectorGUI {
             com.vaultpack.types.BackpackType backpackType = plugin.getBackpackTypeManager().getBackpackType(backpackTypeId);
 
             if (backpackType == null) {
-                plugin.getMessageManager().send(player, "backpack-type-unknown", "%type%", backpackTypeId);
+                plugin.getMessageManager().send(player, "backpack-type-unknown", "type", backpackTypeId);
                 return;
             }
 
@@ -390,7 +390,7 @@ public class BackpackSelectorGUI {
             playSound(player, "ENTITY_ITEM_PICKUP");
 
         } catch (Exception e) {
-            plugin.getMessageManager().send(player, "backpack-place-error", "%error%", e.getMessage());
+            plugin.getMessageManager().send(player, "backpack-place-error", "error", e.getMessage());
             plugin.getLogger().warning("Failed to place backpack: " + e.getMessage());
         }
     }

@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import java.util.List;
 public class Message {
 
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    private static final LegacyComponentSerializer LEGACY_AMPERSAND = LegacyComponentSerializer.legacyAmpersand();
 
     private final String rawMessage;
     private final List<TagResolver> placeholders;
@@ -94,12 +96,49 @@ public class Message {
      * @return The parsed Component
      */
     public Component asComponent() {
+        // Convert legacy & codes to MiniMessage format
+        String converted = convertLegacyToMiniMessage(rawMessage);
+
         if (placeholders.isEmpty()) {
-            return MINI_MESSAGE.deserialize(rawMessage);
+            return MINI_MESSAGE.deserialize(converted);
         } else {
             TagResolver resolver = TagResolver.resolver(placeholders);
-            return MINI_MESSAGE.deserialize(rawMessage, resolver);
+            return MINI_MESSAGE.deserialize(converted, resolver);
         }
+    }
+
+    /**
+     * Convert legacy ampersand color codes to MiniMessage format.
+     *
+     * @param message The message with & codes
+     * @return The message with MiniMessage tags
+     */
+    private String convertLegacyToMiniMessage(String message) {
+        if (message == null) return "";
+
+        return message
+            .replace("&0", "<black>")
+            .replace("&1", "<dark_blue>")
+            .replace("&2", "<dark_green>")
+            .replace("&3", "<dark_aqua>")
+            .replace("&4", "<dark_red>")
+            .replace("&5", "<dark_purple>")
+            .replace("&6", "<gold>")
+            .replace("&7", "<gray>")
+            .replace("&8", "<dark_gray>")
+            .replace("&9", "<blue>")
+            .replace("&a", "<green>")
+            .replace("&b", "<aqua>")
+            .replace("&c", "<red>")
+            .replace("&d", "<light_purple>")
+            .replace("&e", "<yellow>")
+            .replace("&f", "<white>")
+            .replace("&r", "<reset>")
+            .replace("&l", "<bold>")
+            .replace("&o", "<italic>")
+            .replace("&n", "<underlined>")
+            .replace("&m", "<strikethrough>")
+            .replace("&k", "<obfuscated>");
     }
 
     /**

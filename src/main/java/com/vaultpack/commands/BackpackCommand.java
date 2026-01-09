@@ -4,7 +4,7 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
 import com.vaultpack.VaultPackPlugin;
 import com.vaultpack.gui.BackpackSelectorGUI;
-import com.vaultpack.models.PlayerBackpackData;
+import com.vaultpack.data.holders.PlayerDataHolder;
 import org.bukkit.entity.Player;
 
 /**
@@ -53,7 +53,7 @@ public class BackpackCommand extends BaseCommand {
         }
 
         // Check if slot is unlocked
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         if (!data.isSlotUnlocked(slotNumber)) {
             plugin.getMessageManager().send(player, "slot-locked");
             return;

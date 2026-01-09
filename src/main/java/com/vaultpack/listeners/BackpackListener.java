@@ -90,7 +90,7 @@ public class BackpackListener implements Listener {
             return;
         }
 
-        // Check if clicking in unified storage GUI (v2.0.0)
+
         String unifiedTitle = ChatColor.translateAlternateColorCodes('&', "&6&lVaultPack Storage");
         if (title.equals(unifiedTitle)) {
             // Handle unified GUI clicks
@@ -162,7 +162,7 @@ public class BackpackListener implements Listener {
     }
 
     private void handleLeftClick(Player player, int slotNumber) {
-        com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        com.vaultpack.data.holders.PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         if (!data.isSlotUnlocked(slotNumber)) {
             // Try to unlock slot
@@ -230,7 +230,7 @@ public class BackpackListener implements Listener {
         }
     }
 
-    private void handleBackpackPlacement(Player player, int slotNumber, com.vaultpack.models.PlayerBackpackData data) {
+    private void handleBackpackPlacement(Player player, int slotNumber, com.vaultpack.data.holders.PlayerDataHolder data) {
         org.bukkit.inventory.ItemStack cursor = player.getItemOnCursor();
         if (cursor != null && cursor.getType() != org.bukkit.Material.AIR) {
             // Check if it's a backpack item by checking NBT tag
@@ -258,7 +258,7 @@ public class BackpackListener implements Listener {
                     com.vaultpack.models.BackpackTier tier = getTierFromSize(backpackType.getDefaultTier().getSize());
 
                     // Create the backpack with type ID
-                    com.vaultpack.models.PlayerBackpackData playerData = plugin.getDataManager().getPlayerData(player.getUniqueId());
+                    com.vaultpack.data.holders.PlayerDataHolder playerData = plugin.getDataManager().getPlayerData(player.getUniqueId());
                     com.vaultpack.models.Backpack backpack = new com.vaultpack.models.Backpack(player.getUniqueId(), slotNumber, tier, backpackTypeId);
                     playerData.setBackpack(slotNumber, backpack);
 
@@ -269,7 +269,7 @@ public class BackpackListener implements Listener {
                     cursor.setAmount(cursor.getAmount() - 1);
                     player.setItemOnCursor(cursor);
 
-                    plugin.getMessageManager().send(player, "backpack-placed", "%slot%", String.valueOf(slotNumber));
+                    plugin.getMessageManager().send(player, "backpack-placed", "slot", String.valueOf(slotNumber));
                     player.closeInventory();
                     plugin.getBackpackManager().openUnifiedStorageGUI(player);
                 } else {
@@ -283,7 +283,7 @@ public class BackpackListener implements Listener {
         }
     }
 
-    private void handleBackpackSwap(Player player, int slotNumber, com.vaultpack.models.PlayerBackpackData data) {
+    private void handleBackpackSwap(Player player, int slotNumber, com.vaultpack.data.holders.PlayerDataHolder data) {
         org.bukkit.inventory.ItemStack cursor = player.getItemOnCursor();
 
         // Get backpack type ID from NBT
@@ -358,7 +358,7 @@ public class BackpackListener implements Listener {
             // Check if this is a backpack slot (GUI slots 28-45, which is 0-indexed 27-44)
             if (rawSlot >= 27 && rawSlot <= 44) {
                 int slotNumber = rawSlot - 26; // Convert to backpack slot 1-18
-                com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+                com.vaultpack.data.holders.PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
                 if (event.isLeftClick()) {
                     handleLeftClick(player, slotNumber);
@@ -430,7 +430,7 @@ public class BackpackListener implements Listener {
      * Handle ender page clicks
      */
     private void handleEnderPageClick(Player player, int pageNumber) {
-        com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        com.vaultpack.data.holders.PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         if (!data.isEnderPageUnlocked(pageNumber)) {
             // Try to unlock
@@ -452,7 +452,7 @@ public class BackpackListener implements Listener {
         Integer currentSlot = plugin.getBackpackManager().getOpenBackpackSlot(player);
         if (currentSlot == null) return;
 
-        com.vaultpack.models.PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        com.vaultpack.data.holders.PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         switch (slot) {
             case 0: // Close button
@@ -534,7 +534,7 @@ public class BackpackListener implements Listener {
     /**
      * Find the first backpack slot that is unlocked and has a backpack
      */
-    private int findFirstBackpack(com.vaultpack.models.PlayerBackpackData data) {
+    private int findFirstBackpack(com.vaultpack.data.holders.PlayerDataHolder data) {
         for (int i = 1; i <= 18; i++) {
             if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
                 return i;
@@ -546,7 +546,7 @@ public class BackpackListener implements Listener {
     /**
      * Find the last backpack slot that is unlocked and has a backpack
      */
-    private int findLastBackpack(com.vaultpack.models.PlayerBackpackData data) {
+    private int findLastBackpack(com.vaultpack.data.holders.PlayerDataHolder data) {
         for (int i = 18; i >= 1; i--) {
             if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
                 return i;
@@ -558,7 +558,7 @@ public class BackpackListener implements Listener {
     /**
      * Find the previous backpack slot before the current one
      */
-    private int findPreviousBackpack(com.vaultpack.models.PlayerBackpackData data, int currentSlot) {
+    private int findPreviousBackpack(com.vaultpack.data.holders.PlayerDataHolder data, int currentSlot) {
         for (int i = currentSlot - 1; i >= 1; i--) {
             if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
                 return i;
@@ -570,7 +570,7 @@ public class BackpackListener implements Listener {
     /**
      * Find the next backpack slot after the current one
      */
-    private int findNextBackpack(com.vaultpack.models.PlayerBackpackData data, int currentSlot) {
+    private int findNextBackpack(com.vaultpack.data.holders.PlayerDataHolder data, int currentSlot) {
         for (int i = currentSlot + 1; i <= 18; i++) {
             if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
                 return i;

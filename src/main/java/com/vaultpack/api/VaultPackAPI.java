@@ -234,7 +234,7 @@ public class VaultPackAPI {
         return data.getTotalUsedSlots();
     }
 
-    // ========== Ender Chest Management (v2.0.0) ==========
+
 
     /**
      * Check if a player has an ender page unlocked

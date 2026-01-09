@@ -2,32 +2,34 @@ package com.vaultpack.data;
 
 import com.vaultpack.VaultPackPlugin;
 import com.vaultpack.data.holders.PlayerDataHolder;
-import org.bukkit.configuration.file.YamlConfiguration;
+import com.vaultpack.data.storage.MySQLStorage;
+import com.vaultpack.data.storage.StorageBackend;
+import com.vaultpack.data.storage.YAMLStorage;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
- * Modern data manager using PlayerDataHolder architecture.
+ * Modern data manager using PlayerDataHolder architecture with pluggable storage backends.
  * Handles loading, saving, and caching of player data.
  *
  * <p>Features:</p>
  * <ul>
+ *   <li>Pluggable storage backends (YAML, MySQL, etc.)</li>
  *   <li>Async loading/saving for performance</li>
  *   <li>LRU caching with automatic unloading</li>
  *   <li>Thread-safe operations</li>
  *   <li>Modular component-based data</li>
  * </ul>
+ *
+ * <p>Phase 9: Storage backend architecture</p>
  */
 public class BackpackDataManager {
 
     private final VaultPackPlugin plugin;
-    private final File dataFolder;
-    private final File backupFolder;
+    private final StorageBackend storage;
 
     // Cache system
     private final Map<UUID, PlayerDataHolder> dataCache;
@@ -53,8 +55,6 @@ public class BackpackDataManager {
 
     public BackpackDataManager(VaultPackPlugin plugin) {
         this.plugin = plugin;
-        this.dataFolder = new File(plugin.getDataFolder(), "playerdata");
-        this.backupFolder = new File(plugin.getDataFolder(), "backups");
 
         // Initialize caching system
         this.dataCache = new LinkedHashMap<>(16, 0.75f, true); // LRU cache
@@ -62,15 +62,31 @@ public class BackpackDataManager {
         this.lastAccessTime = new ConcurrentHashMap<>();
         this.scheduledUnloads = ConcurrentHashMap.newKeySet();
 
-        // Create folders
-        if (!dataFolder.exists()) {
-            dataFolder.mkdirs();
-        }
-        if (!backupFolder.exists()) {
-            backupFolder.mkdirs();
+        // Initialize storage backend based on config
+        String storageType = plugin.getConfig().getString("data.storage-type", "yaml").toLowerCase();
+
+        switch (storageType) {
+            case "mysql":
+                DatabaseManager database = new DatabaseManager(plugin);
+                this.storage = new MySQLStorage(plugin, database);
+                plugin.getLogger().info("Using MySQL storage backend");
+                break;
+
+            case "yaml":
+            default:
+                this.storage = new YAMLStorage(plugin);
+                plugin.getLogger().info("Using YAML storage backend");
+                break;
         }
 
-        plugin.getLogger().info("BackpackDataManager initialized with component-based architecture");
+        // Initialize storage backend
+        storage.initialize().thenAccept(success -> {
+            if (success) {
+                plugin.getLogger().info("BackpackDataManager initialized with " + storage.getType() + " storage");
+            } else {
+                plugin.getLogger().severe("Failed to initialize storage backend!");
+            }
+        });
     }
 
     /**
@@ -161,35 +177,17 @@ public class BackpackDataManager {
     }
 
     /**
-     * Load player data synchronously from disk.
+     * Load player data synchronously from storage backend.
      *
      * @param playerId Player UUID
      * @return PlayerDataHolder
      */
     private PlayerDataHolder loadPlayerDataSync(UUID playerId) {
-        File playerFile = new File(dataFolder, playerId.toString() + ".yml");
-
-        PlayerDataHolder dataHolder = new PlayerDataHolder(playerId);
-
-        if (playerFile.exists()) {
-            try {
-                YamlConfiguration yaml = YamlConfiguration.loadConfiguration(playerFile);
-                dataHolder.load(yaml);
-                dataHolder.markClean();
-            } catch (Exception e) {
-                plugin.getLogger().log(Level.SEVERE, "Failed to load data for " + playerId, e);
-            }
-        } else {
-            // New player - set defaults
-            dataHolder.setUnlockedSlots(plugin.getConfigManager().getDefaultUnlockedSlots());
-            dataHolder.markDirty();
-        }
-
-        return dataHolder;
+        return storage.loadPlayerData(playerId);
     }
 
     /**
-     * Save player data to disk.
+     * Save player data to storage backend.
      *
      * @param playerId Player UUID
      */
@@ -199,21 +197,17 @@ public class BackpackDataManager {
             return;
         }
 
-        // Only save if dirty
-        if (!dataHolder.isDirty()) {
-            return;
-        }
+        storage.savePlayerData(playerId, dataHolder).join();
+    }
 
-        File playerFile = new File(dataFolder, playerId.toString() + ".yml");
-
-        try {
-            YamlConfiguration yaml = new YamlConfiguration();
-            dataHolder.saveAll(yaml);
-            yaml.save(playerFile);
-            dataHolder.markClean();
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save data for " + playerId, e);
-        }
+    /**
+     * Save player data to disk synchronously.
+     * Alias for savePlayerData() for clarity.
+     *
+     * @param playerId Player UUID
+     */
+    public void savePlayerDataSync(UUID playerId) {
+        savePlayerData(playerId);
     }
 
     /**
@@ -221,39 +215,23 @@ public class BackpackDataManager {
      */
     public void saveAllData() {
         plugin.getLogger().info("Saving all player data...");
-
-        int saved = 0;
-        for (UUID playerId : dataCache.keySet()) {
-            savePlayerData(playerId);
-            saved++;
-        }
-
-        plugin.getLogger().info("Saved " + saved + " player data files");
+        storage.saveAllData(dataCache);
     }
 
     /**
-     * Load all player data from disk (used on startup).
+     * Load all player data from storage (used on startup).
      */
     public void loadAllData() {
-        if (!dataFolder.exists()) {
+        Collection<UUID> playerIds = storage.loadAllPlayerIds();
+
+        if (playerIds.isEmpty()) {
             return;
         }
 
-        File[] files = dataFolder.listFiles((dir, name) -> name.endsWith(".yml"));
-        if (files == null || files.length == 0) {
-            return;
-        }
+        plugin.getLogger().info("Pre-loading " + playerIds.size() + " player data records...");
 
-        plugin.getLogger().info("Pre-loading " + files.length + " player data files...");
-
-        for (File file : files) {
-            String fileName = file.getName().replace(".yml", "");
-            try {
-                UUID playerId = UUID.fromString(fileName);
-                loadPlayerDataAsync(playerId);
-            } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid UUID in playerdata folder: " + fileName);
-            }
+        for (UUID playerId : playerIds) {
+            loadPlayerDataAsync(playerId);
         }
     }
 
@@ -283,12 +261,17 @@ public class BackpackDataManager {
             dataHolder.reset();
             savePlayerData(playerId);
         } else {
-            // Delete file if exists
-            File playerFile = new File(dataFolder, playerId.toString() + ".yml");
-            if (playerFile.exists()) {
-                playerFile.delete();
-            }
+            // Delete from storage if exists
+            storage.deletePlayerData(playerId).join();
         }
+    }
+
+    /**
+     * Shutdown the data manager and storage backend.
+     */
+    public void shutdown() {
+        saveAllData();
+        storage.shutdown();
     }
 
     /**

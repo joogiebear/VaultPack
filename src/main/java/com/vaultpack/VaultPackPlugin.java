@@ -31,13 +31,13 @@ public class VaultPackPlugin extends JavaPlugin {
 
     // Managers
     private ConfigManager configManager;
-    private com.vaultpack.messages.MessageManager messageManager;  // Phase 4: Modern Adventure API message system
-    private com.vaultpack.config.MenuManager menuManager;  // v1.0.0: Menu system
+    private com.vaultpack.messages.MessageManager messageManager;
+    private com.vaultpack.config.MenuManager menuManager;
     private BackpackDataManager dataManager;
     private BackpackManager backpackManager;
     private EconomyManager economyManager;
     private BackpackTypeManager backpackTypeManager;
-    private com.vaultpack.managers.EnderChestManager enderChestManager; // v2.0.0
+    private com.vaultpack.managers.EnderChestManager enderChestManager;
     private com.vaultpack.managers.ExpansionManager expansionManager; // Phase 7: Expansion system
 
     // Economy
@@ -92,9 +92,9 @@ public class VaultPackPlugin extends JavaPlugin {
             expansionManager.disableAll();
         }
 
-        // Save all data
+        // Save all data and shutdown storage
         if (dataManager != null) {
-            dataManager.saveAllData();
+            dataManager.shutdown();
         }
 
         // Close backpack inventories
@@ -200,13 +200,9 @@ public class VaultPackPlugin extends JavaPlugin {
 
         // Check for economy plugins
         Plugin royaleEconomy = getServer().getPluginManager().getPlugin("RoyaleEconomy");
-        Plugin ecoPlugin = getServer().getPluginManager().getPlugin("eco");
 
         if (royaleEconomy != null) {
             logger.info("Detected RoyaleEconomy v" + royaleEconomy.getDescription().getVersion());
-        }
-        if (ecoPlugin != null) {
-            logger.info("Detected eco v" + ecoPlugin.getDescription().getVersion() + " (may act as economy bridge)");
         }
 
         // Try to get the Economy service provider
@@ -217,15 +213,11 @@ public class VaultPackPlugin extends JavaPlugin {
 
             // Debug: Check if RoyaleEconomy is loaded but not registered
             if (royaleEconomy != null && royaleEconomy.isEnabled()) {
-                logger.warning("RoyaleEconomy is loaded but not registered with Vault!");
-
-                if (ecoPlugin != null && ecoPlugin.isEnabled()) {
-                    logger.warning("The 'eco' plugin is loaded - it may need to register the economy provider.");
-                    logger.warning("Check eco's configuration to ensure it's set to provide economy services via Vault.");
-                } else {
-                    logger.warning("RoyaleEconomy requires the 'eco' plugin to bridge with Vault!");
-                    logger.warning("Make sure the eco plugin is installed and loaded.");
-                }
+                logger.warning("RoyaleEconomy is loaded but not registering with Vault!");
+                logger.warning("Possible reasons:");
+                logger.warning("  - RoyaleEconomy may be loading after Vault (check plugin load order)");
+                logger.warning("  - Check RoyaleEconomy's configuration for Vault integration settings");
+                logger.warning("  - Try restarting the server to fix load order issues");
             }
 
             vaultEnabled = false;
@@ -267,10 +259,10 @@ public class VaultPackPlugin extends JavaPlugin {
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BackpackListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new com.vaultpack.listeners.EnderChestListener(this), this); // v2.0.0
-        Bukkit.getPluginManager().registerEvents(new com.vaultpack.listeners.DeathProtectionListener(this), this); // v2.0.0
+        Bukkit.getPluginManager().registerEvents(new com.vaultpack.listeners.EnderChestListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new com.vaultpack.listeners.DeathProtectionListener(this), this);
         Bukkit.getPluginManager().registerEvents(new com.vaultpack.listeners.CraftingListener(this), this); // Recipe validation with amounts
-        Bukkit.getPluginManager().registerEvents(new com.vaultpack.gui.MenuClickHandler(this), this); // v1.0.0: Menu system click handler
+        Bukkit.getPluginManager().registerEvents(new com.vaultpack.gui.MenuClickHandler(this), this);
     }
 
     /**

@@ -6,6 +6,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Data component for managing player backpack slots and data.
@@ -13,14 +14,17 @@ import java.util.Map;
  */
 public class BackpackDataComponent extends BaseDataComponent {
 
+    private final UUID ownerUUID;
+
     @Getter
     private int unlockedSlots;
 
     @Getter
     private final Map<Integer, Backpack> backpacks;
 
-    public BackpackDataComponent() {
+    public BackpackDataComponent(UUID ownerUUID) {
         super("backpacks");
+        this.ownerUUID = ownerUUID;
         this.unlockedSlots = 1; // Default 1 unlocked slot
         this.backpacks = new HashMap<>();
     }

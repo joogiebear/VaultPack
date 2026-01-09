@@ -42,7 +42,8 @@ public class LangConfig extends BaseConfig {
     }
 
     /**
-     * Load all messages from the messages section.
+     * Load all messages from the messages section OR root level.
+     * Flexible loading: tries "messages:" section first, falls back to root.
      */
     private void loadMessages() {
         messages.clear();
@@ -50,12 +51,13 @@ public class LangConfig extends BaseConfig {
         YamlConfiguration yaml = getYaml();
         ConfigurationSection messagesSection = yaml.getConfigurationSection("messages");
 
-        if (messagesSection == null) {
-            getLogger().warning("No 'messages' section found in " + getFile().getName());
-            return;
+        if (messagesSection != null) {
+            // Load from messages: section
+            loadMessagesRecursive(messagesSection, "", messages);
+        } else {
+            // Fall back to root level (Aurora-style flexibility)
+            loadMessagesRecursive(yaml, "", messages);
         }
-
-        loadMessagesRecursive(messagesSection, "", messages);
 
         getLogger().info("Loaded " + messages.size() + " messages from " + getFile().getName());
     }

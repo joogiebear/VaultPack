@@ -6,6 +6,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Data component for managing player ender chest pages.
@@ -13,14 +14,17 @@ import java.util.Map;
  */
 public class EnderChestDataComponent extends BaseDataComponent {
 
+    private final UUID ownerUUID;
+
     @Getter
     private int unlockedPages;
 
     @Getter
     private final Map<Integer, EnderPage> pages;
 
-    public EnderChestDataComponent() {
+    public EnderChestDataComponent(UUID ownerUUID) {
         super("ender-chests");
+        this.ownerUUID = ownerUUID;
         this.unlockedPages = 1; // Default 1 unlocked page
         this.pages = new HashMap<>();
     }
@@ -69,7 +73,7 @@ public class EnderChestDataComponent extends BaseDataComponent {
     public EnderPage getPage(int page) {
         return pages.computeIfAbsent(page, p -> {
             markDirty();
-            return new EnderPage(p);
+            return new EnderPage(ownerUUID, p);
         });
     }
 

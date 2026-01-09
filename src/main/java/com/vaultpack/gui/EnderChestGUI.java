@@ -3,7 +3,7 @@ package com.vaultpack.gui;
 import com.vaultpack.VaultPackPlugin;
 import com.vaultpack.config.MenuConfig;
 import com.vaultpack.models.EnderPage;
-import com.vaultpack.models.PlayerBackpackData;
+import com.vaultpack.data.holders.PlayerDataHolder;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -40,7 +40,7 @@ public class EnderChestGUI {
             return;
         }
 
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         // Calculate total items across all pages
         int totalItems = 0;
@@ -79,7 +79,7 @@ public class EnderChestGUI {
     /**
      * Add all ender chest pages to the menu
      */
-    private void addEnderPages(Inventory inv, Player player, PlayerBackpackData data, MenuConfig menuConfig) {
+    private void addEnderPages(Inventory inv, Player player, PlayerDataHolder data, MenuConfig menuConfig) {
         ConfigurationSection pagesSection = menuConfig.getConfig().getConfigurationSection("enderchest-pages");
         if (pagesSection == null) return;
 
@@ -186,7 +186,7 @@ public class EnderChestGUI {
         int pageNumber = getPageNumberFromGUISlot(slot, menuConfig);
         if (pageNumber == -1) return;
 
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
         boolean unlocked = data.isEnderPageUnlocked(pageNumber);
 
         if (!unlocked) {
@@ -265,14 +265,14 @@ public class EnderChestGUI {
      * Handle unlock page click
      */
     private void handleUnlockClick(Player player, int pageNumber, MenuConfig menuConfig) {
-        PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
+        PlayerDataHolder data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         // Check if player has permission
         String permission = plugin.getConfigManager().getEnderPagePermission(pageNumber);
         if (player.hasPermission(permission)) {
             // Unlock with permission
             data.unlockEnderPage(pageNumber);
-            plugin.getMessageManager().send(player, "ender-page-unlocked", "%page%", String.valueOf(pageNumber));
+            plugin.getMessageManager().send(player, "ender-page-unlocked", "page", String.valueOf(pageNumber));
             playSound(player, menuConfig.getSound("unlock"));
             // Refresh menu
             open(player);
@@ -293,7 +293,7 @@ public class EnderChestGUI {
                 // Refresh menu
                 open(player);
             } else {
-                plugin.getMessageManager().send(player, "slot-unlock-fail", "%cost%", String.valueOf(cost));
+                plugin.getMessageManager().send(player, "slot-unlock-fail", "cost", String.valueOf(cost));
                 playSound(player, menuConfig.getSound("error"));
             }
         } else {

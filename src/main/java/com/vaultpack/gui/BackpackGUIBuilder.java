@@ -1,6 +1,6 @@
 package com.vaultpack.gui;
 
-import com.vaultpack.models.PlayerBackpackData;
+import com.vaultpack.data.holders.PlayerDataHolder;
 import com.vaultpack.utils.ItemBuilderUtil;
 import com.vaultpack.managers.NavigationHandler;
 import org.bukkit.Material;
@@ -29,7 +29,7 @@ public class BackpackGUIBuilder {
      * @param currentSlot The current backpack slot number
      * @param data The player's backpack data
      */
-    public static void addNavigationHeader(Inventory inventory, Player player, int currentSlot, PlayerBackpackData data) {
+    public static void addNavigationHeader(Inventory inventory, Player player, int currentSlot, PlayerDataHolder data) {
         // Slot 0: Close button
         inventory.setItem(0, ItemBuilderUtil.createButton(
             Material.BARRIER,
