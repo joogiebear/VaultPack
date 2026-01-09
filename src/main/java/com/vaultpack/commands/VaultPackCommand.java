@@ -118,7 +118,7 @@ public class VaultPackCommand extends BaseCommand {
     @Subcommand("giveitem")
     @CommandPermission("vaultpack.admin")
     @Description("Give a player a backpack item")
-    @CommandCompletion("@players @nothing")
+    @CommandCompletion("@players @backpackTypes")
     @Syntax("<player> <type> [amount]")
     public void onGiveItem(CommandSender sender, Player target, String backpackTypeId, @Default("1") int amount) {
         com.vaultpack.types.BackpackType backpackType = plugin.getBackpackTypeManager().getBackpackType(backpackTypeId);

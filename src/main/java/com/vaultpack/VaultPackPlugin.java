@@ -176,6 +176,10 @@ public class VaultPackPlugin extends JavaPlugin {
             return pages;
         });
 
+        commandManager.getCommandCompletions().registerAsyncCompletion("backpackTypes", c -> {
+            return new java.util.ArrayList<>(backpackTypeManager.getAllBackpackTypes().keySet());
+        });
+
         logger.info("ACF Command Framework initialized successfully");
     }
 
