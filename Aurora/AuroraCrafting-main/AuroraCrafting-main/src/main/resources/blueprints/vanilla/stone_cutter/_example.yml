@@ -1,0 +1,7 @@
+recipes:
+  - id: stonecutter_example
+    input: "minecraft:prismarine_shard"
+    result: "minecraft:emerald"
+    # Every field is optional below
+    vanilla-options:
+      group: "test"

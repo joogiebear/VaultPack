@@ -1,0 +1,19 @@
+reloaded: "&aReloaded configuration!"
+menu-opened: "&aOpened collection menu for {player}"
+data-not-loaded-yet: "&cData for this player hasn't loaded yet, try again later!"
+data-not-loaded-yet-self: "&cYour data isn't loaded yet, please try again later!"
+player-only-command: "&cThis command can only be executed by a player!"
+no-permission: "&cYou don't have permission to execute this command!"
+invalid-syntax: "&cInvalid command syntax!"
+must-be-number: "&cArgument must be a number!"
+player-not-found: "&cPlayer not found!"
+command-error: "&cAn error occurred while executing this command!"
+category-not-found: "&cCategory {category} not found!"
+collection-not-found: "&cCollection {collection} not found!"
+add-success: "&aAdded &2{number} &ato &2{collection} &afor &2{player}!"
+set-success: "&aSet &2{collection} &ato &2{number} &afor &2{player}!"
+remove-success: "&aRemoved &2{number} &afrom &2{collection} &afor &2{player}!"
+reset-success: "&aReset &2{collection} &afor &2{player}!"
+
+# Don't touch this unless you know what you're doing
+config-version: 1

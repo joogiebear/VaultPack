@@ -68,15 +68,13 @@ public class BackpackTypeManager {
                 BackpackType type = new BackpackType(id, typeSection);
                 backpackTypes.put(id, type);
                 loaded++;
-
-                logger.info("Loaded backpack type: " + id);
             } catch (Exception e) {
                 logger.warning("Failed to load backpack type '" + id + "': " + e.getMessage());
                 e.printStackTrace();
             }
         }
 
-        logger.info("Loaded " + loaded + " backpack type(s)");
+        logger.info("Loaded " + loaded + " backpack types");
 
         // Register crafting recipes
         registerRecipes();
@@ -110,7 +108,6 @@ public class BackpackTypeManager {
                 // Skip vanilla recipe registration for recipes with custom plugin items
                 // They will be handled purely by CraftingListener
                 if (hasCustomPluginItems) {
-                    logger.info("Skipping vanilla recipe registration for " + type.getId() + " (contains custom items, will use CraftingListener only)");
                     continue;
                 }
 
@@ -137,14 +134,15 @@ public class BackpackTypeManager {
                 // Register the recipe
                 Bukkit.addRecipe(recipe);
                 registered++;
-                logger.info("Registered recipe for: " + type.getId());
             } catch (Exception e) {
                 logger.warning("Failed to register recipe for " + type.getId() + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
 
-        logger.info("Registered " + registered + " vanilla crafting recipe(s)");
+        if (registered > 0) {
+            logger.info("Registered " + registered + " recipes");
+        }
     }
 
     private void setRecipeIngredient(ShapedRecipe recipe, char slot, String ingredientStr) {

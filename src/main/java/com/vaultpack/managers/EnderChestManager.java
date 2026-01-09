@@ -35,7 +35,7 @@ public class EnderChestManager {
 
         // Check if page is unlocked
         if (!data.isEnderPageUnlocked(pageNumber)) {
-            player.sendMessage(ChatColor.RED + "This ender chest page is locked!");
+            plugin.getMessageManager().send(player, "slot-locked");
             return;
         }
 
@@ -148,7 +148,7 @@ public class EnderChestManager {
         PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         if (data.isEnderPageUnlocked(pageNumber)) {
-            player.sendMessage(ChatColor.RED + "This ender chest page is already unlocked!");
+            plugin.getMessageManager().send(player, "slot-already-unlocked");
             return;
         }
 
@@ -158,7 +158,7 @@ public class EnderChestManager {
             if (player.hasPermission(permission)) {
                 data.unlockEnderPage(pageNumber);
                 plugin.getDataManager().savePlayerData(player.getUniqueId());
-                player.sendMessage(ChatColor.GREEN + "Ender Chest Page " + pageNumber + " unlocked!");
+                plugin.getMessageManager().send(player, "slot-unlocked", "%slot%", String.valueOf(pageNumber));
                 return;
             }
         }
@@ -168,16 +168,16 @@ public class EnderChestManager {
             int cost = plugin.getConfigManager().getEnderPageUnlockCost(pageNumber);
 
             if (!plugin.getEconomyManager().hasMoney(player, cost)) {
-                player.sendMessage(ChatColor.RED + "You don't have enough money! Need: $" + cost);
+                plugin.getMessageManager().send(player, "slot-unlock-fail", "%cost%", String.valueOf(cost));
                 return;
             }
 
             plugin.getEconomyManager().takeMoney(player, cost);
             data.unlockEnderPage(pageNumber);
             plugin.getDataManager().savePlayerData(player.getUniqueId());
-            player.sendMessage(ChatColor.GREEN + "Ender Chest Page " + pageNumber + " unlocked for $" + cost + "!");
+            plugin.getMessageManager().send(player, "slot-unlocked", "%slot%", String.valueOf(pageNumber));
         } else {
-            player.sendMessage(ChatColor.RED + "You don't have permission to unlock this page!");
+            plugin.getMessageManager().send(player, "slot-unlock-no-permission");
         }
     }
 

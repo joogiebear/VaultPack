@@ -1,0 +1,29 @@
+config-version: 0
+
+title: "Recipe Book"
+rows: 6
+
+# These lines will be added to the category item lore
+append-lore:
+  - " "
+  - "&eClick to view recipes"
+
+filler:
+  material: black_stained_glass_pane
+  hide-tooltip: true
+  name: ""
+
+custom-items:
+  close:
+    material: barrier
+    name: "&cClose"
+    slot: 49
+    on-click:
+      - "[close]"
+  book:
+    material: book
+    name: "&aRecipe Book"
+    slot: 4
+    lore:
+      - "&7You can view all the custom recipes"
+      - "&7you have unlocked here."

@@ -1,10 +1,10 @@
 plugins {
     id("java")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("io.github.goooler.shadow") version "8.1.8"
 }
 
 group = "com.vaultpack"
-version = "1.0.0"
+version = "2.0.0"
 
 repositories {
     mavenCentral()
@@ -23,6 +23,12 @@ repositories {
         name = "placeholderapi"
         url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     }
+
+    // Auxilor ecosystem (eco suite)
+    maven {
+        name = "auxilor"
+        url = uri("https://repo.auxilor.io/repository/maven-public/")
+    }
 }
 
 dependencies {
@@ -36,6 +42,24 @@ dependencies {
 
     // PlaceholderAPI
     compileOnly("me.clip:placeholderapi:2.11.5")
+
+    // Auxilor eco suite integration
+    // eco - Core library for Spigot development
+    compileOnly("com.willfp:eco:6.74.1")
+
+    // EcoItems - Custom items support (already in plugin.yml softdepend)
+    compileOnly("com.willfp:EcoItems:5.59.2")
+
+    // Phase 2: Database support
+    // HikariCP - High-performance JDBC connection pool
+    implementation("com.zaxxer:HikariCP:5.1.0")
+
+    // MySQL Connector - JDBC driver for MySQL
+    implementation("com.mysql:mysql-connector-j:8.3.0")
+
+    // Phase 3: Adventure API (modern text components)
+    // Paper includes Adventure, but we add MiniMessage for advanced formatting
+    implementation("net.kyori:adventure-text-minimessage:4.17.0")
 }
 
 java {
@@ -53,11 +77,20 @@ tasks.shadowJar {
     archiveClassifier.set("")
     archiveVersion.set(project.version.toString())
 
-    // Don't shade dependencies - they're all provided
+    // Phase 2: Relocate HikariCP and MySQL to avoid conflicts
+    relocate("com.zaxxer.hikari", "com.vaultpack.libs.hikari")
+    relocate("com.mysql", "com.vaultpack.libs.mysql")
+
+    // Phase 3: Relocate MiniMessage to avoid conflicts
+    relocate("net.kyori.adventure.text.minimessage", "com.vaultpack.libs.minimessage")
+
+    // Exclude provided dependencies
     dependencies {
         exclude(dependency("io.papermc.paper:paper-api"))
         exclude(dependency("com.github.MilkBowl:VaultAPI"))
         exclude(dependency("me.clip:placeholderapi"))
+        exclude(dependency("com.willfp:eco"))
+        exclude(dependency("com.willfp:EcoItems"))
     }
 }
 

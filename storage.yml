@@ -1,0 +1,209 @@
+# ============================================
+# VaultPack - Unified Storage Menu
+# ============================================
+# The main hub for all player storage!
+# Command: /storage
+#
+# Slot Reference (6 rows = 54 slots):
+#   Row 1: [ 0] [ 1] [ 2] [ 3] [ 4] [ 5] [ 6] [ 7] [ 8]
+#   Row 2: [ 9] [10] [11] [12] [13] [14] [15] [16] [17]
+#   Row 3: [18] [19] [20] [21] [22] [23] [24] [25] [26]
+#   Row 4: [27] [28] [29] [30] [31] [32] [33] [34] [35]
+#   Row 5: [36] [37] [38] [39] [40] [41] [42] [43] [44]
+#   Row 6: [45] [46] [47] [48] [49] [50] [51] [52] [53]
+# ============================================
+
+title: "&6&lStorage"
+rows: 6
+
+# Visual mask pattern
+mask:
+  items:
+    - gray_stained_glass_pane   # 1
+    - black_stained_glass_pane  # 2
+    - purple_stained_glass_pane # 3 - Ender section
+    - orange_stained_glass_pane # 4 - Backpack section
+  pattern:
+    - "222222222"  # Slots 0-8
+    - "233333322"  # Slots 9-17
+    - "222202222"  # Slots 18-26 (Ender pages display here)
+    - "244444442"  # Slots 27-35
+    - "240000042"  # Slots 36-44 (Backpack slots display here)
+    - "222022222"  # Slots 45-53
+
+# Custom decoration slots
+slots:
+  ender-header:
+    slot: 4
+    item: ender_chest
+    name: "&5&lENDER CHEST"
+    lore:
+      - ""
+      - "&7Your global ender storage"
+      - "&7accessible from anywhere!"
+      - ""
+      - "&dPages: &f%unlocked_ender_pages%&7/&f9"
+      - "&dCapacity: &f45 slots per page"
+      - "&dTotal: &f%ender_total_slots% slots"
+      - ""
+      - "&eClick to view all pages!"
+    glow: true
+    click-action: open_menu
+    menu: enderchest
+
+  backpack-header:
+    slot: 22
+    item: chest
+    name: "&6&lBACKPACKS"
+    lore:
+      - ""
+      - "&7Your portable backpack"
+      - "&7storage system!"
+      - ""
+      - "&eSlots: &f%unlocked_backpack_slots%&7/&f18"
+      - "&eSizes: &fSmall to Colossal"
+      - "&eUpgradeable: &fYes!"
+      - ""
+      - "&eClick to view all backpacks!"
+    glow: true
+    click-action: open_menu
+    menu: backpack_selector
+
+  help:
+    slot: 48
+    item: book
+    name: "&eℹ &7Help & Info"
+    lore:
+      - ""
+      - "&7• &fEnder Pages &7hold &d45 items &7each"
+      - "&7• &fBackpacks &7can be upgraded"
+      - "&7• &fUnlock more &7with &6/backpack unlock"
+      - "&7• &fUnlock pages &7with &6/enderchest unlock"
+      - ""
+      - "&8Tip: Items persist after death!"
+
+  close:
+    slot: 49
+    item: barrier
+    name: "&cClose"
+    click-action: close_inventory
+
+# ========== DYNAMIC ENDER PAGES ==========
+# Displays up to 7 ender pages in row 3 (slots 19-25)
+enderchest-display:
+  enabled: true
+  slots: [9, 10, 11, 12, 13, 14, 15, 16, 17]
+  max-visible: 9
+  total-pages: 9
+
+  # Locked page appearance
+  locked:
+    item: gray_dye
+    name: "&7Page %page% &c✖"
+    lore:
+      - "&7This page is locked!"
+      - ""
+      - "&dUnlock Cost: &a$%cost%"
+      - ""
+      - "&eClick to unlock!"
+    click-action: unlock_ender_page
+
+  # Unlocked empty page
+  unlocked-empty:
+    item: ender_pearl
+    name: "&5Page %page% &a✓"
+    lore:
+      - "&7Items: &70&7/&f45"
+      - ""
+      - "&eClick to open!"
+    click-action: open_ender_page
+
+  # Unlocked page with items
+  unlocked-active:
+    item: ender_eye
+    name: "&5Page %page% &a✓"
+    lore:
+      - "&7Items: &a%used%&7/&f45"
+      - "&7Fill: %fill_bar%"
+      - ""
+      - "&eClick to open!"
+    click-action: open_ender_page
+    glow: true
+
+# ========== DYNAMIC BACKPACK SLOTS ==========
+# Displays up to 7 backpack slots in row 5 (slots 37-43)
+backpack-display:
+  enabled: true
+  slots: [27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+  max-visible: 18
+  total-slots: 18
+
+  # Locked slot appearance
+  locked:
+    item: gray_dye
+    name: "&7Slot %slot% &c✖"
+    lore:
+      - "&7This slot is locked!"
+      - ""
+      - "&eUnlock Cost: &a$%cost%"
+      - ""
+      - "&eClick to unlock!"
+    click-action: unlock_backpack_slot
+
+  # Empty slot appearance
+  empty:
+    item: lime_dye
+    name: "&aSlot %slot% &7✓"
+    lore:
+      - "&7Empty - Place a backpack"
+      - ""
+      - "&eClick with backpack to place!"
+    click-action: place_backpack
+
+  # Active backpack appearance
+  active:
+    # Item will be the actual backpack item
+    name: "&6BP %slot% &8[%tier%]"
+    lore:
+      - "&7%tier_display% &8• &e%size% slots"
+      - "&7Items: &a%used%&7/&e%size%"
+      - ""
+      - "&eClick to open!"
+    click-action: open_backpack
+    glow-if-has-items: true
+
+# ========== PAGINATION ==========
+# Arrows appear if there are more than 7 pages/slots
+pagination:
+  enabled: true
+
+  ender-previous:
+    slot: 18
+    item: arrow
+    name: "&f← Previous"
+    click-action: previous_ender_page
+
+  ender-next:
+    slot: 26
+    item: arrow
+    name: "&fNext →"
+    click-action: next_ender_page
+
+  backpack-previous:
+    slot: 36
+    item: arrow
+    name: "&f← Previous"
+    click-action: previous_backpack_page
+
+  backpack-next:
+    slot: 44
+    item: arrow
+    name: "&fNext →"
+    click-action: next_backpack_page
+
+# ========== SOUNDS ==========
+sounds:
+  open: BLOCK_ENDER_CHEST_OPEN
+  close: BLOCK_ENDER_CHEST_CLOSE
+  click: UI_BUTTON_CLICK
+  error: ENTITY_VILLAGER_NO

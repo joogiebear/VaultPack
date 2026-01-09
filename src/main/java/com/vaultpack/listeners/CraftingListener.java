@@ -289,8 +289,9 @@ public class CraftingListener implements Listener {
             // Update the crafting inventory
             inventory.setMatrix(matrix);
 
+            // Folia-compatible: Use player's EntityScheduler
             // Give result on next tick (after event is processed)
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            player.getScheduler().run(plugin, task -> {
                 if (event.isShiftClick()) {
                     // Shift-click - add to inventory
                     java.util.HashMap<Integer, ItemStack> overflow = player.getInventory().addItem(result);
@@ -302,7 +303,7 @@ public class CraftingListener implements Listener {
                     // Normal click - put on cursor
                     player.setItemOnCursor(result);
                 }
-            });
+            }, null);
         }
     }
 

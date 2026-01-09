@@ -54,14 +54,13 @@ public class MenuManager {
             try {
                 MenuConfig menu = new MenuConfig(menuId, file);
                 menus.put(menuId, menu);
-                logger.info("Loaded menu: " + menuId);
             } catch (Exception e) {
                 logger.severe("Failed to load menu: " + menuId);
                 e.printStackTrace();
             }
         }
 
-        logger.info("Loaded " + menus.size() + " menu configurations!");
+        logger.info("Loaded " + menus.size() + " menus");
     }
 
     /**
@@ -81,7 +80,6 @@ public class MenuManager {
                 try (InputStream in = plugin.getResource("menus/" + menuFile)) {
                     if (in != null) {
                         Files.copy(in, file.toPath());
-                        logger.info("Created default menu file: " + menuFile);
                     }
                 } catch (IOException e) {
                     logger.warning("Could not create default menu file: " + menuFile);

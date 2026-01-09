@@ -1,0 +1,65 @@
+name: Aurora
+version: '${version}'
+main: gg.auroramc.aurora.Aurora
+api-version: 1.20
+authors: [ "erik_sz" ]
+folia-supported: true
+softdepend:
+  - PlaceholderAPI
+  - Vault
+  - WorldGuard
+  - CMI
+  - Essentials
+  - LuckPerms
+  - CustomFishing
+  - MythicLib
+  - MMOItems
+  - MythicMobs
+  - Oraxen
+  - ExecutableItems
+  - ExecutableBlocks
+  - SCore
+  - ItemsAdder
+  - HeadDatabase
+  - EliteMobs
+  - PlayerPoints
+  - CoinsEngine
+  - RoyaleEconomy
+  - Nexo
+  - ItemEdit
+  - EvenMoreFish
+  - WildTools
+  - KGenerators
+  - CraftEngine
+  - CrackShot
+
+permissions:
+  aurora.core.admin:
+    description: Allows the player to use all AuroraAPI commands
+    default: op
+    children:
+      - aurora.core.admin.reload
+      - aurora.core.admin.dispatch
+      - aurora.core.admin.meta
+      - aurora.core.admin.dbmigrate
+      - aurora.core.admin.gui
+      - aurora.core.admin.stash
+      - aurora.core.admin.registeritem
+      - aurora.core.admin.giveitem
+      - aurora.core.admin.unregisteritem
+      - aurora.core.admin.merchant
+      - aurora.core.admin.debug.blockinfo
+      - aurora.core.admin.debug.itemid
+      - aurora.core.admin.debug.blockremove
+      - aurora.core.admin.debug.latency
+      - aurora.core.admin.stash.other
+      - aurora.core.admin.leaderboard.clear
+  aurora.core.user:
+    description: Allows the player to use user commands
+    default: true
+    children:
+      - aurora.core.user.stash.open
+      - aurora.core.user.merchant.open
+  aurora.core.user.language:
+    description: Allows player to use the language command
+    default: false

@@ -1,0 +1,62 @@
+config-version: 1
+
+rows: 6
+
+title: "Craft Item"
+
+# DO NOT use AIR here
+invalid-result-item:
+  material: barrier
+  name: "&cRecipe required"
+  lore:
+    - "&7Add the items for a valid recipe in"
+    - "&7the crafting grid to the left!"
+
+empty-quick-craft-item:
+  material: gray_stained_glass_pane
+  name: "&cQuick Crafting Slot"
+  lore:
+    - "&7Quick crafting allows you to craft"
+    - "&7items without assembling the recipe."
+
+no-permission-quick-craft-item:
+  material: red_stained_glass_pane
+  name: "&cQuick Crafting Slot"
+  lore:
+    - "&7Quick crafting allows you to craft"
+    - "&7items without assembling the recipe."
+    - " "
+    - "&cYou do not have permission to use this slot"
+
+blueprint-completed-item:
+  material: lime_stained_glass_pane
+  name: ""
+  hide-tooltip: true
+
+blueprint-not-completed-item:
+  material: red_stained_glass_pane
+  name: ""
+  hide-tooltip: true
+
+next-recipe-item:
+  material: arrow
+  name: "&fNext Recipe"
+  lore:
+    - "&7Click to view the next recipe"
+
+previous-recipe-item:
+  material: arrow
+  name: "&fPrevious Recipe"
+  lore:
+    - "&7Click to view the previous recipe"
+
+back-item:
+  material: arrow
+  name: "&fBack"
+  lore:
+    - "&7Click to go back"
+
+filler:
+  material: black_stained_glass_pane
+  name: ""
+  hide-tooltip: true

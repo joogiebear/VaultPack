@@ -1,0 +1,106 @@
+debug: false
+
+# Must be valid language codes
+supported-languages:
+  - en
+
+# Must be a valid language code
+locale: en
+
+# You must grant permission for the /language command to allow users choosing from supported languages
+# See wiki for more details
+use-per-player-locale: false
+
+# When per player locale is enabled, locale will be automatically set to the player's locale
+number-format:
+  locale: en-US
+  int-format: '#,###'
+  double-format: '#,##0.##'
+  short-number-format:
+    format: '#,##0.##'
+    suffixes:
+      thousand: "K"
+      million: "M"
+      billion: "B"
+      trillion: "T"
+      quadrillion: "Q"
+
+user-auto-save-in-minutes: 10
+# Can be yaml or mysql
+# If you use mysql, your leaderboard data will be stored in mysql as well
+# otherwise, it will be stored in a local sqlite database
+storage-type: "yaml"
+
+mysql:
+  host: "127.0.0.1"
+  port: 3306
+  ssl: false
+  database: "db name"
+  username: "username"
+  password: "password"
+  network-latency: 500
+  pool-size: 10
+  sync-retry-count: 3
+
+# Tracks blocks placed by players
+block-tracker:
+  enabled: true
+
+leaderboards:
+  empty-placeholder: "---"
+
+# Use "auto-detect" to automatically detect the economy provider. Otherwise use the plugin name you want.
+# Supported plugins: Vault, Essentials, CMI, PlayerPoints, CoinsEngine, EcoBits, EliteMobs
+# Changing this requires a full restart
+default-economy-provider: "auto-detect"
+
+# Remove the stuff you don't want in case if there are errors
+# Otherwise those will be loaded that are available on the server
+item-matchers:
+  - "CustomFishing"
+  - "Eco"
+  - "ExecutableItems"
+  - "ExecutableBlocks"
+  - "HeadDatabase"
+  - "ItemsAdder"
+  - "MMOItems"
+  - "MythicMobs"
+  - "Nexo"
+  - "Oraxen"
+  - "ItemEdit"
+  - "EvenMoreFish"
+  - "KGenerators"
+  - "CraftEngine"
+  - "CrackShot"
+
+# Resolver with the highest number will run first
+item-resolver-priorities:
+  crackshot: 210
+  customfishing: 200
+  craftengine: 195
+  # ExecutableBlocks
+  eb: 190
+  # EvenMoreFish
+  emf: 180
+  # ExecutableItems
+  ei: 170
+  mmoitems: 160
+  mythicmobs: 150
+  eco: 140
+  nexo: 130
+  oraxen: 120
+  # ItemsAdder
+  ia: 110
+  itemedit: 100
+  kgenerators: 95
+  # HeadDatabase
+  hdb: 90
+  aurora: 80
+
+# Should we try resolve IDs for items registered through /aurora registeritem <id>?
+# This is experimental and may not work for every use case.
+# Changing these values requires a full restart
+aurora-items:
+  enable-id-resolver: true
+
+config-version: 13

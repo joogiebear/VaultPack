@@ -1,0 +1,23 @@
+config-version: 0
+
+merchants:
+  test:
+    name: "Test Merchant"
+    permission: "test.permission"
+    menu:
+      title: "{name}"
+      locked-lore:
+        - "&7Unlock this merchant by"
+        - "&7completing &aDiamond collection V&7!"
+      item:
+        material: emerald
+        name: "&a{name}"
+        slot: 10
+        lore:
+          - "&7Click to open the merchant"
+    offers:
+      - ingredients:
+          - "minecraft:cobblestone/64"
+          - "minecraft:coal/7"
+        result: "minecraft:stone/64"
+        permission: "test.merchant.offer.1"

@@ -24,12 +24,9 @@ public class BackpackListener implements Listener {
 
         Player player = (Player) event.getPlayer();
 
-        // Check if they're closing a backpack
-        if (plugin.getBackpackManager().isBackpackOpen(player)) {
-            String title = event.getView().getTitle();
-
-            // Check if it's a backpack inventory (starts with "Backpack #")
-            if (title.contains("Backpack #")) {
+        // Use InventoryHolder pattern instead of fragile title matching
+        if (event.getInventory().getHolder() instanceof com.vaultpack.gui.holders.BackpackInventoryHolder) {
+            if (plugin.getBackpackManager().isBackpackOpen(player)) {
                 plugin.getBackpackManager().closeBackpack(player);
             }
         }
@@ -44,8 +41,9 @@ public class BackpackListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         String title = event.getView().getTitle();
 
-        // Check if clicking in backpack inventory
-        if (title.contains("Backpack #") && plugin.getBackpackManager().isBackpackOpen(player)) {
+        // Use InventoryHolder pattern for backpack inventories
+        if (event.getInventory().getHolder() instanceof com.vaultpack.gui.holders.BackpackInventoryHolder &&
+            plugin.getBackpackManager().isBackpackOpen(player)) {
             // Check if clicked in the top inventory (backpack GUI)
             if (event.getClickedInventory() != null &&
                 event.getClickedInventory().equals(event.getView().getTopInventory())) {
@@ -249,27 +247,39 @@ public class BackpackListener implements Listener {
                 com.vaultpack.types.BackpackType backpackType = plugin.getBackpackTypeManager().getBackpackType(backpackTypeId);
 
                 if (backpackType != null) {
+                    // Check craft permission
+                    String craftPerm = "vaultpack.craft." + backpackTypeId.toLowerCase();
+                    if (!player.hasPermission(craftPerm) && !player.hasPermission("vaultpack.craft.*")) {
+                        plugin.getMessageManager().send(player, "no-permission");
+                        return;
+                    }
+
                     // Get tier from backpack type
                     com.vaultpack.models.BackpackTier tier = getTierFromSize(backpackType.getDefaultTier().getSize());
 
                     // Create the backpack with type ID
-                    plugin.getBackpackManager().createBackpack(player, slotNumber, tier, backpackTypeId);
+                    com.vaultpack.models.PlayerBackpackData playerData = plugin.getDataManager().getPlayerData(player.getUniqueId());
+                    com.vaultpack.models.Backpack backpack = new com.vaultpack.models.Backpack(player.getUniqueId(), slotNumber, tier, backpackTypeId);
+                    playerData.setBackpack(slotNumber, backpack);
 
-                    // Remove item from cursor
+                    // CRITICAL FIX: Save data synchronously BEFORE removing item from cursor
+                    plugin.getDataManager().savePlayerDataSync(player.getUniqueId());
+
+                    // Remove item from cursor AFTER successful save
                     cursor.setAmount(cursor.getAmount() - 1);
                     player.setItemOnCursor(cursor);
 
-                    player.sendMessage(ChatColor.GREEN + "Backpack placed in slot #" + slotNumber + "!");
+                    plugin.getMessageManager().send(player, "backpack-placed", "%slot%", String.valueOf(slotNumber));
                     player.closeInventory();
                     plugin.getBackpackManager().openUnifiedStorageGUI(player);
                 } else {
-                    player.sendMessage(ChatColor.RED + "Invalid backpack type!");
+                    plugin.getMessageManager().send(player, "backpack-item-invalid");
                 }
             } else {
-                player.sendMessage(ChatColor.RED + "You must click with a backpack item to place it!");
+                plugin.getMessageManager().send(player, "backpack-place-fail");
             }
         } else {
-            player.sendMessage(ChatColor.RED + "You must click with a backpack item to place it!");
+            plugin.getMessageManager().send(player, "backpack-place-fail");
         }
     }
 
@@ -285,7 +295,7 @@ public class BackpackListener implements Listener {
         com.vaultpack.types.BackpackType backpackType = plugin.getBackpackTypeManager().getBackpackType(backpackTypeId);
 
         if (backpackType == null) {
-            player.sendMessage(ChatColor.RED + "Invalid backpack type!");
+            plugin.getMessageManager().send(player, "backpack-item-invalid");
             return;
         }
 
@@ -299,8 +309,10 @@ public class BackpackListener implements Listener {
 
         // Check if new backpack is larger
         if (newSize <= oldSize) {
-            player.sendMessage(ChatColor.RED + "You can only swap with a LARGER backpack!");
-            player.sendMessage(ChatColor.YELLOW + "Current: " + oldSize + " slots | New: " + newSize + " slots");
+            plugin.getMessageManager().send(player, "backpack-swap-size-error");
+            plugin.getMessageManager().send(player, "backpack-swap-size-info",
+                "%old_size%", String.valueOf(oldSize),
+                "%new_size%", String.valueOf(newSize));
             return;
         }
 
@@ -314,14 +326,18 @@ public class BackpackListener implements Listener {
 
         // Replace backpack
         data.setBackpack(slotNumber, newBackpack);
-        plugin.getDataManager().savePlayerData(player.getUniqueId());
 
-        // Remove item from cursor
+        // CRITICAL FIX: Save data synchronously BEFORE removing item from cursor to prevent data loss on crash
+        plugin.getDataManager().savePlayerDataSync(player.getUniqueId());
+
+        // Remove item from cursor AFTER successful save
         cursor.setAmount(cursor.getAmount() - 1);
         player.setItemOnCursor(cursor);
 
-        player.sendMessage(ChatColor.GREEN + "Backpack upgraded from " + oldSize + " to " + newSize + " slots!");
-        player.sendMessage(ChatColor.YELLOW + "All items have been preserved!");
+        plugin.getMessageManager().send(player, "backpack-swap-success",
+            "%old_size%", String.valueOf(oldSize),
+            "%new_size%", String.valueOf(newSize));
+        plugin.getMessageManager().send(player, "backpack-swap-preserved");
         player.closeInventory();
         plugin.getBackpackManager().openUnifiedStorageGUI(player);
     }
@@ -383,7 +399,7 @@ public class BackpackListener implements Listener {
 
             // Search button
             if (displayName.contains("Search")) {
-                player.sendMessage(ChatColor.YELLOW + "Search feature coming soon!");
+                plugin.getMessageManager().send(player, "feature-coming-soon");
                 // TODO: Implement search functionality
                 return;
             }
@@ -445,22 +461,24 @@ public class BackpackListener implements Listener {
 
             case 1: // Back to all backpacks
                 player.closeInventory();
-                org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                // Folia-compatible: Use player's EntityScheduler
+                player.getScheduler().runDelayed(plugin, task -> {
                     if (player.isOnline()) {
                         new com.vaultpack.gui.StorageMenuGUI(plugin).open(player);
                     }
-                }, 1L);
+                }, null, 1L);
                 break;
 
             case 5: // First backpack
                 int firstSlot = findFirstBackpack(data);
                 if (firstSlot != -1 && firstSlot != currentSlot) {
                     player.closeInventory();
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    // Folia-compatible: Use player's EntityScheduler
+                    player.getScheduler().runDelayed(plugin, task -> {
                         if (player.isOnline()) {
                             plugin.getBackpackManager().openBackpack(player, firstSlot);
                         }
-                    }, 1L);
+                    }, null, 1L);
                 } else {
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "Already at the first backpack!");
                 }
@@ -470,11 +488,12 @@ public class BackpackListener implements Listener {
                 int previousSlot = findPreviousBackpack(data, currentSlot);
                 if (previousSlot != -1) {
                     player.closeInventory();
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    // Folia-compatible: Use player's EntityScheduler
+                    player.getScheduler().runDelayed(plugin, task -> {
                         if (player.isOnline()) {
                             plugin.getBackpackManager().openBackpack(player, previousSlot);
                         }
-                    }, 1L);
+                    }, null, 1L);
                 } else {
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "No previous backpack!");
                 }
@@ -484,11 +503,12 @@ public class BackpackListener implements Listener {
                 int nextSlot = findNextBackpack(data, currentSlot);
                 if (nextSlot != -1) {
                     player.closeInventory();
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    // Folia-compatible: Use player's EntityScheduler
+                    player.getScheduler().runDelayed(plugin, task -> {
                         if (player.isOnline()) {
                             plugin.getBackpackManager().openBackpack(player, nextSlot);
                         }
-                    }, 1L);
+                    }, null, 1L);
                 } else {
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "No next backpack!");
                 }
@@ -498,11 +518,12 @@ public class BackpackListener implements Listener {
                 int lastSlot = findLastBackpack(data);
                 if (lastSlot != -1 && lastSlot != currentSlot) {
                     player.closeInventory();
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    // Folia-compatible: Use player's EntityScheduler
+                    player.getScheduler().runDelayed(plugin, task -> {
                         if (player.isOnline()) {
                             plugin.getBackpackManager().openBackpack(player, lastSlot);
                         }
-                    }, 1L);
+                    }, null, 1L);
                 } else {
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "Already at the last backpack!");
                 }

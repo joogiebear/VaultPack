@@ -36,7 +36,7 @@ public class BackpackSelectorGUI {
         // Fetch menu config dynamically to support reload
         MenuConfig menuConfig = plugin.getMenuManager().getMenu("backpack_selector");
         if (menuConfig == null) {
-            player.sendMessage(ChatColor.RED + "Backpack menu not configured!");
+            plugin.getMessageManager().send(player, "data-load-error");
             return;
         }
 
@@ -238,7 +238,7 @@ public class BackpackSelectorGUI {
             if (cursorItem != null && cursorItem.getType() != Material.AIR) {
                 handlePlaceBackpack(player, slotNumber, cursorItem);
             } else {
-                player.sendMessage(ChatColor.YELLOW + "Hold a backpack item and click to place it in slot " + slotNumber);
+                plugin.getMessageManager().send(player, "backpack-place-fail");
             }
         } else {
             // Active backpack
@@ -328,7 +328,7 @@ public class BackpackSelectorGUI {
     private void handlePlaceBackpack(Player player, int slotNumber, ItemStack cursorItem) {
         // Check if item is a backpack
         if (!isBackpackItem(cursorItem)) {
-            player.sendMessage(ChatColor.RED + "You can only place backpack items in these slots!");
+            plugin.getMessageManager().send(player, "backpack-item-only");
             return;
         }
 
@@ -336,7 +336,7 @@ public class BackpackSelectorGUI {
 
         // Check if slot already has a backpack
         if (data.hasBackpack(slotNumber)) {
-            player.sendMessage(ChatColor.RED + "This slot already has a backpack! Remove it first.");
+            plugin.getMessageManager().send(player, "backpack-place-occupied");
             return;
         }
 
@@ -350,7 +350,7 @@ public class BackpackSelectorGUI {
             org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(plugin, "backpack_type");
 
             if (!container.has(key, org.bukkit.persistence.PersistentDataType.STRING)) {
-                player.sendMessage(ChatColor.RED + "This backpack item is invalid!");
+                plugin.getMessageManager().send(player, "backpack-item-invalid");
                 return;
             }
 
@@ -358,7 +358,7 @@ public class BackpackSelectorGUI {
             com.vaultpack.types.BackpackType backpackType = plugin.getBackpackTypeManager().getBackpackType(backpackTypeId);
 
             if (backpackType == null) {
-                player.sendMessage(ChatColor.RED + "Unknown backpack type: " + backpackTypeId);
+                plugin.getMessageManager().send(player, "backpack-type-unknown", "%type%", backpackTypeId);
                 return;
             }
 
@@ -376,18 +376,21 @@ public class BackpackSelectorGUI {
             // Remove item from cursor
             player.setItemOnCursor(null);
 
-            // Refresh menu
-            org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            // Folia-compatible: Use player's EntityScheduler for player-specific actions
+            // Refresh menu after 1 tick
+            player.getScheduler().runDelayed(plugin, task -> {
                 if (player.isOnline()) {
                     open(player);
                 }
-            }, 1L);
+            }, null, 1L);
 
-            player.sendMessage(ChatColor.GREEN + "Placed " + ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()) + ChatColor.GREEN + " in slot #" + slotNumber + "!");
+            plugin.getMessageManager().send(player, "backpack-placed-type",
+                "%type%", ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()),
+                "%slot%", String.valueOf(slotNumber));
             playSound(player, "ENTITY_ITEM_PICKUP");
 
         } catch (Exception e) {
-            player.sendMessage(ChatColor.RED + "Failed to place backpack: " + e.getMessage());
+            plugin.getMessageManager().send(player, "backpack-place-error", "%error%", e.getMessage());
             plugin.getLogger().warning("Failed to place backpack: " + e.getMessage());
             e.printStackTrace();
         }

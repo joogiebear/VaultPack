@@ -1,12 +1,34 @@
 # ============================================
 #           VaultPack Configuration
 # ============================================
-# v1.0.0 - Multi-backpack storage system
+# v1.1.0 - Multi-backpack storage system
+# Phase 1: Enhanced with async loading & caching
 #
 # For GUI customization, see menus/ folder
 # For backpack types, see backpacks.yml
 # For messages, see lang.yml
 # ============================================
+
+# ========== PERFORMANCE (Phase 1) ==========
+# New async loading and caching system for better scalability
+performance:
+  # Maximum number of players to keep in cache
+  # Players are loaded on join and unloaded after disconnect
+  # LRU (Least Recently Used) eviction when limit is reached
+  # Higher values = more memory usage, faster access
+  # Lower values = less memory usage, more disk I/O
+  # Recommended: 200 for small servers, 500 for medium, 1000+ for large
+  max-cached-players: 200
+
+  # Delay before unloading player data after quit (in seconds)
+  # If player rejoins during this time, no reload is needed
+  # Set to 0 to unload immediately (not recommended)
+  # Recommended: 300 (5 minutes)
+  cache-unload-delay: 300
+
+  # Show cache statistics to admins on join
+  # Useful for monitoring performance
+  show-cache-stats-on-join: false
 
 # ========== STORAGE LIMITS ==========
 storage:
@@ -21,6 +43,32 @@ storage:
 
   # Default unlocked ender pages for new players
   default-unlocked-pages: 1
+
+# ========== WORLD RESTRICTIONS ==========
+# Restrict backpack usage in certain worlds
+worlds:
+  enabled: false
+  # Mode: blacklist = disabled in listed worlds
+  #       whitelist = only enabled in listed worlds
+  mode: blacklist
+  list:
+    - pvp_arena
+    - minigames
+    - lobby
+  # Message when trying to use backpacks in restricted world
+  restricted-message: "&cBackpacks are disabled in this world!"
+
+# ========== COOLDOWNS ==========
+# Prevent spam actions (in seconds, 0 = no cooldown)
+cooldowns:
+  # Time between opening the same backpack
+  backpack-open: 0
+  # Time between slot unlock attempts
+  slot-unlock: 1
+  # Time between page unlock attempts
+  page-unlock: 1
+  # Time between backpack upgrades
+  backpack-upgrade: 1
 
 # ========== ECONOMY SETTINGS ==========
 economy:
@@ -48,11 +96,8 @@ economy:
   upgrade-costs:
     small-to-medium: 5000
     medium-to-large: 10000
-    large-to-huge: 20000
-    huge-to-massive: 40000
-    massive-to-colossal: 80000
-    colossal-to-greater: 160000
-    greater-to-jumbo: 320000
+    large-to-greater: 20000
+    greater-to-jumbo: 40000
 
 # ========== PERMISSIONS ==========
 # Alternative to economy - use permissions instead
@@ -123,8 +168,49 @@ hooks:
   ecoitems:
     enabled: true
 
-# ========== DATA STORAGE ==========
+# ========== DATA STORAGE (Phase 2) ==========
 data:
+  # Storage type: yaml or mysql
+  # yaml  - File-based storage (default, works out of the box)
+  # mysql - Database storage (requires MySQL 8.0+, best for large servers)
+  storage-type: yaml
+
+# ========== DATABASE CONFIGURATION (Phase 2) ==========
+# Only used when storage-type is set to mysql
+database:
+  # MySQL connection details
+  host: localhost
+  port: 3306
+  name: vaultpack
+  username: root
+  password: changeme
+
+  # Connection pool settings (HikariCP)
+  pool:
+    # Maximum number of connections in the pool
+    # Recommended: 10 for small servers, 20 for large servers
+    maximum-pool-size: 10
+
+    # Minimum number of idle connections to maintain
+    minimum-idle: 2
+
+    # Connection timeout in milliseconds (30 seconds)
+    connection-timeout: 30000
+
+    # Maximum time a connection can stay idle (10 minutes)
+    idle-timeout: 600000
+
+    # Maximum lifetime of a connection (30 minutes)
+    max-lifetime: 1800000
+
+  # SSL/TLS encryption for database connection
+  ssl:
+    enabled: false
+    verify-certificate: true
+
+# ========== OLD DATA STORAGE ==========
+# Legacy settings (kept for backward compatibility)
+data-legacy:
   # Auto-save interval (in seconds)
   auto-save-interval: 300
 

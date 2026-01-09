@@ -29,7 +29,7 @@ public class StorageCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "This command can only be used by players!");
+            plugin.getMessageManager().send(sender, "command-player-only");
             return true;
         }
 
@@ -37,7 +37,7 @@ public class StorageCommand implements CommandExecutor, TabCompleter {
 
         // Check permission
         if (!player.hasPermission("vaultpack.use")) {
-            player.sendMessage(ChatColor.RED + "You don't have permission to use this command!");
+            plugin.getMessageManager().send(player, "no-permission");
             return true;
         }
 

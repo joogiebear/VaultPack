@@ -1,0 +1,34 @@
+name: AuroraLevels
+version: '${version}'
+main: gg.auroramc.levels.AuroraLevels
+api-version: 1.19
+authors: [ "erik_sz" ]
+folia-supported: true
+depend:
+  - "Aurora"
+softdepend:
+  - "LuckPerms"
+  - "AuraSkills"
+  - "MythicMobs"
+  - "PlaceholderAPI"
+  - "MythicLib"
+  - "WorldGuard"
+  - "EcoSkills"
+
+permissions:
+  aurora.levels.*:
+    children:
+      aurora.levels.use:
+        default: true
+      aurora.levels.milestones.use:
+        default: true
+      aurora.levels.use.mainmenu:
+        default: true
+      aurora.levels.admin.*:
+        default: op
+        children:
+          - aurora.levels.admin.set
+          - aurora.levels.admin.addxp
+          - aurora.levels.admin.reload
+          - aurora.levels.admin.setraw
+          - aurora.levels.admin.info

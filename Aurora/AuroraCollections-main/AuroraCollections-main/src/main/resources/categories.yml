@@ -1,0 +1,26 @@
+config-version: 1
+
+categories:
+  farming:
+    name: "Farming"
+    levels:
+      my_level1:
+        percentage: 50
+        rewards:
+          my_command:
+            type: item
+            item:
+              material: diamond
+            display: "&8+&b1 shiny diamond"
+  mining:
+    name: "Mining"
+  combat:
+    name: "Combat"
+  foraging:
+    name: "Foraging"
+  fishing:
+    name: "Fishing"
+
+
+
+

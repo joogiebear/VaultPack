@@ -1,0 +1,88 @@
+name: "Global Example"
+difficulty: "easy"
+
+menu-item:
+  material: paper
+  name: "&f{name}"
+  lore:
+    - "&7This is an example quest."
+    - "&7You can edit this file to create your own quests."
+    - ""
+    - "&7Tasks:"
+    - "  &f{task_mine_block}"
+    - "  &f{task_kill_mob}"
+    - ""
+    - "&7Rewards:"
+    - "  {reward_money}"
+    - "  {reward_cmsg}"
+    - ""
+    - "&7Difficulty: &f{difficulty}"
+
+locked-lore:
+  - ""
+  - "&cYou can't start this quest yet."
+
+completed-lore:
+  - ""
+  - "&aYou have completed this quest."
+
+tasks:
+  # Task 1
+  mine_block:
+    task: BLOCK_BREAK
+    display: "{status} &fMine {required} stone &b{current}&f/&b{required}"
+    args:
+      amount: 10
+      types:
+        - "minecraft:stone"
+    # These filters can be used for every task
+    filters:
+      worlds:
+        type: whitelist
+        value: [ "world" ]
+      # Requires WorldGuard
+      regions:
+        type: blacklist
+        value: [ "spawn" ]
+      min-ylevel: 0
+      max-ylevel: 64
+      hand:
+        # Items that the player must be holding when the action happens
+        # Only one of these needs to match
+        items:
+          - "minecraft:diamond_pickaxe"
+          - "oraxen:mythril_pickaxe"
+  # Task 2
+  kill_mob:
+    task: KILL_MOB
+    display: "{status} &fKill {required} zombies &b{current}&f/&b{required}"
+    args:
+      amount: 10
+      types:
+        - "minecraft:zombie"
+
+# Rewards to give when player completes the quest
+rewards:
+  money:
+    type: money
+    amount: 10000
+    display: "&8+&a{value_formatted}$"
+  cmsg:
+    type: command
+    command: "[console] say Hi %player_name%"
+    display: "&8+&f1 Console message"
+
+# If this is a timed random quest, it won't pick it if the requirements are not met
+#start-requirements:
+#  # If true, the quest will be locked and can only be unlocked using /quest unlock
+#  # Rest of the requirements will be ignored if this is true
+#  needs-manual-unlock: true
+#  # Should the quest be shown in the menu even if the player doesn't meet the requirements
+#  # Only works for global quests
+#  always-show-in-menu: true
+#  # Required quests to be completed before this quest can be started
+#  quests:
+#    - "quest_name"
+#  # Required permissions to start the quest
+#  permissions:
+#    - "example.permission"

@@ -101,12 +101,13 @@ public class MenuClickHandler implements Listener {
                 if (!data.isEnderPageUnlocked(pageNumber)) {
                     // Try to unlock the page
                     handleEnderPageUnlock(player, pageNumber);
+                    // Folia-compatible: Use player's EntityScheduler
                     // Reopen storage menu after unlock attempt to show updated state
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    player.getScheduler().runDelayed(plugin, task -> {
                         if (player.isOnline()) {
                             new com.vaultpack.gui.StorageMenuGUI(plugin).open(player);
                         }
-                    }, 3L); // Small delay to let messages show
+                    }, null, 3L); // Small delay to let messages show
                 } else {
                     // Page is unlocked, open it
                     plugin.getEnderChestManager().openEnderPage(player, pageNumber);
@@ -131,12 +132,13 @@ public class MenuClickHandler implements Listener {
                 if (!data.isSlotUnlocked(slotNumber)) {
                     // Try to unlock the slot
                     plugin.getBackpackManager().unlockSlot(player, slotNumber);
+                    // Folia-compatible: Use player's EntityScheduler
                     // Reopen storage menu after unlock attempt to show updated state
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    player.getScheduler().runDelayed(plugin, task -> {
                         if (player.isOnline()) {
                             new com.vaultpack.gui.StorageMenuGUI(plugin).open(player);
                         }
-                    }, 3L); // Small delay to let messages show
+                    }, null, 3L); // Small delay to let messages show
                 } else {
                     // Slot is unlocked
                     com.vaultpack.models.Backpack backpack = data.getBackpack(slotNumber);
@@ -204,7 +206,7 @@ public class MenuClickHandler implements Listener {
 
         // This is a backpack slot - check if item is a backpack
         if (!isBackpackItem(cursor)) {
-            player.sendMessage(ChatColor.RED + "You can only place backpacks in these slots!");
+            plugin.getMessageManager().send(player, "backpack-item-only");
             return true; // Prevent the click
         }
 
@@ -213,13 +215,13 @@ public class MenuClickHandler implements Listener {
 
         // Check if slot is unlocked
         if (!data.isSlotUnlocked(slotNumber)) {
-            player.sendMessage(ChatColor.RED + "This slot is locked! Click to unlock it first.");
+            plugin.getMessageManager().send(player, "slot-locked");
             return true;
         }
 
         // Check if slot already has a backpack
         if (data.hasBackpack(slotNumber)) {
-            player.sendMessage(ChatColor.RED + "This slot already has a backpack! Remove it first.");
+            plugin.getMessageManager().send(player, "backpack-place-occupied");
             return true;
         }
 
@@ -233,7 +235,7 @@ public class MenuClickHandler implements Listener {
             org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(plugin, "backpack_type");
 
             if (!container.has(key, org.bukkit.persistence.PersistentDataType.STRING)) {
-                player.sendMessage(ChatColor.RED + "This backpack item is invalid!");
+                plugin.getMessageManager().send(player, "backpack-item-invalid");
                 return true;
             }
 
@@ -241,7 +243,14 @@ public class MenuClickHandler implements Listener {
             com.vaultpack.types.BackpackType backpackType = plugin.getBackpackTypeManager().getBackpackType(backpackTypeId);
 
             if (backpackType == null) {
-                player.sendMessage(ChatColor.RED + "Unknown backpack type: " + backpackTypeId);
+                plugin.getMessageManager().send(player, "backpack-type-unknown", "%type%", backpackTypeId);
+                return true;
+            }
+
+            // Check craft permission
+            String craftPerm = "vaultpack.craft." + backpackTypeId.toLowerCase();
+            if (!player.hasPermission(craftPerm) && !player.hasPermission("vaultpack.craft.*")) {
+                plugin.getMessageManager().send(player, "no-permission");
                 return true;
             }
 
@@ -254,24 +263,29 @@ public class MenuClickHandler implements Listener {
                 backpackTypeId
             );
             data.setBackpack(slotNumber, backpack);
-            plugin.getDataManager().savePlayerData(player.getUniqueId());
 
-            // Remove item from cursor
+            // CRITICAL FIX: Save data BEFORE removing item from cursor to prevent duplication on crash
+            plugin.getDataManager().savePlayerDataSync(player.getUniqueId());
+
+            // Remove item from cursor AFTER successful save
             event.setCursor(null);
 
+            // Folia-compatible: Use player's EntityScheduler
             // Refresh menu
-            org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            player.getScheduler().runDelayed(plugin, task -> {
                 if (player.isOnline()) {
                     new com.vaultpack.gui.StorageMenuGUI(plugin).open(player);
                 }
-            }, 1L);
+            }, null, 1L);
 
-            player.sendMessage(ChatColor.GREEN + "Placed " + ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()) + ChatColor.GREEN + " in slot #" + slotNumber + "!");
+            plugin.getMessageManager().send(player, "backpack-placed-type",
+                "%type%", ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()),
+                "%slot%", String.valueOf(slotNumber));
             playSound(player, "ENTITY_ITEM_PICKUP");
 
             return true;
         } catch (Exception e) {
-            player.sendMessage(ChatColor.RED + "Failed to place backpack: " + e.getMessage());
+            plugin.getMessageManager().send(player, "backpack-place-error", "%error%", e.getMessage());
             plugin.getLogger().warning("Failed to place backpack: " + e.getMessage());
             e.printStackTrace();
             return true;
@@ -297,8 +311,8 @@ public class MenuClickHandler implements Listener {
     private void handleBackpackRemoval(Player player, int slotNumber, com.vaultpack.models.Backpack backpack, org.bukkit.event.inventory.InventoryClickEvent event) {
         // Check if backpack is empty
         if (!backpack.isEmpty()) {
-            player.sendMessage(ChatColor.RED + "This backpack contains items! Empty it before removing.");
-            player.sendMessage(ChatColor.YELLOW + "Tip: You can upgrade backpacks without removing them.");
+            plugin.getMessageManager().send(player, "backpack-remove-not-empty");
+            plugin.getMessageManager().send(player, "backpack-remove-tip");
             playSound(player, "ENTITY_VILLAGER_NO");
             return;
         }
@@ -309,7 +323,7 @@ public class MenuClickHandler implements Listener {
             com.vaultpack.types.BackpackType backpackType = plugin.getBackpackTypeManager().getBackpackType(backpackTypeId);
 
             if (backpackType == null) {
-                player.sendMessage(ChatColor.RED + "Unknown backpack type!");
+                plugin.getMessageManager().send(player, "backpack-type-unknown", "%type%", backpackTypeId);
                 return;
             }
 
@@ -327,21 +341,24 @@ public class MenuClickHandler implements Listener {
             if (!overflow.isEmpty()) {
                 // Inventory full - drop at player location
                 player.getWorld().dropItem(player.getLocation(), backpackItem);
-                player.sendMessage(ChatColor.YELLOW + "Your inventory is full! Backpack dropped at your feet.");
+                plugin.getMessageManager().send(player, "backpack-removed-dropped");
             }
 
+            // Folia-compatible: Use player's EntityScheduler
             // Refresh menu
-            org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            player.getScheduler().runDelayed(plugin, task -> {
                 if (player.isOnline()) {
                     new com.vaultpack.gui.StorageMenuGUI(plugin).open(player);
                 }
-            }, 1L);
+            }, null, 1L);
 
-            player.sendMessage(ChatColor.GREEN + "Removed " + ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()) + ChatColor.GREEN + " from slot #" + slotNumber + "!");
+            plugin.getMessageManager().send(player, "backpack-removed-type",
+                "%type%", ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()),
+                "%slot%", String.valueOf(slotNumber));
             playSound(player, "ENTITY_ITEM_PICKUP");
 
         } catch (Exception e) {
-            player.sendMessage(ChatColor.RED + "Failed to remove backpack: " + e.getMessage());
+            plugin.getMessageManager().send(player, "backpack-remove-error", "%error%", e.getMessage());
             plugin.getLogger().warning("Failed to remove backpack: " + e.getMessage());
             e.printStackTrace();
         }
@@ -399,7 +416,7 @@ public class MenuClickHandler implements Listener {
     private void openMenu(Player player, String menuId) {
         MenuConfig menu = plugin.getMenuManager().getMenu(menuId);
         if (menu == null) {
-            player.sendMessage(ChatColor.RED + "Menu not found: " + menuId);
+            plugin.getMessageManager().send(player, "menu-not-found", "%menu%", menuId);
             return;
         }
 
@@ -422,7 +439,7 @@ public class MenuClickHandler implements Listener {
                 break;
 
             default:
-                player.sendMessage(ChatColor.RED + "Menu not implemented: " + menuId);
+                plugin.getMessageManager().send(player, "menu-not-implemented", "%menu%", menuId);
                 break;
         }
     }

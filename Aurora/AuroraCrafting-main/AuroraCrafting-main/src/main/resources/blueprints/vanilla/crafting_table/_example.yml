@@ -1,0 +1,42 @@
+recipes:
+  # Unique ID of the recipe
+  - id: emerald-recipe2
+    # Type of the custom recipe (shaped or shapeless)
+    shapeless: false
+    symmetry: true
+    # Permission to unlock/craft the recipe
+    permission: "craft.emerald"
+    # Result item of the recipe
+    # (can reference the ingredient item from the crafting inventory by using ingredient:2 for the 2nd ingredient)
+    result: "minecraft:emerald/32"
+    # Ingredients required to craft the recipe
+    ingredients:
+      - ""
+      - "minecraft:diamond/32"
+      - ""
+      - "minecraft:diamond/32"
+      - "minecraft:diamond/32"
+      - "minecraft:diamond/32"
+      - ""
+      - "minecraft:diamond/32"
+      - ""
+    # This is only relevant if you register the recipe to the vanilla crafting table
+    # Fully optional
+    vanilla-options:
+      # vanilla recipe book category
+      category: "equipment"
+      group: "vanilla grouping stuff"
+      # item-type for dynamic choice or exact for items that doesn't change
+      choice-type: "item_type"
+    # Stuff to customize looks in various menus
+    display-options:
+      locked-lore:
+        - "&7You need &aEmerald collection level 5 &7to unlock this recipe."
+    # Defines how to merge data from the ingredients into the result item (optional)
+    # This is basically smithing/anvil heaven
+    merge-options:
+      # Stuff from the second 2nd will be merged into the result item
+      2:
+        enchants: true
+        # Transfers the trim state from the ingredient to the result item (if applicable)
+        trim: true

@@ -1,0 +1,41 @@
+name: AuroraCollections
+version: '${version}'
+main: gg.auroramc.collections.AuroraCollections
+api-version: '1.20'
+authors: [ erik_sz ]
+folia-supported: true
+depend: [ Aurora ]
+softdepend:
+  - WorldGuard
+  - AuroraLevels
+  - AuraSkills
+  - CustomFishing
+  - MythicMobs
+  - MythicLib
+  - MMOItems
+  - LuckPerms
+  - TopMinion
+  - BeeMinions
+  - BeeMinionsRework
+  - Nexo
+  - MMOCore
+  - PyroFishingPro
+
+website: https://auroramc.gg
+
+permissions:
+  aurora.collections.use:
+    description: Allows the player to use the /collections command
+    default: true
+  aurora.collections.use.open:
+    description: Allows the player to use the /collections progression command
+    default: true
+  aurora.collections.admin.*:
+    default: op
+    children:
+      - aurora.collections.admin.reload
+      - aurora.collections.admin.open
+      - aurora.collections.admin.reset
+      - aurora.collections.admin.set
+      - aurora.collections.admin.remove
+      - aurora.collections.admin.add

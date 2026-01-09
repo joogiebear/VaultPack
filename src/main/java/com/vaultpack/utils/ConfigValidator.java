@@ -27,8 +27,6 @@ public class ConfigValidator {
      * @return true if validation passed (no errors), false otherwise
      */
     public boolean validate() {
-        plugin.getLogger().info("Validating configuration...");
-
         // Validate main config
         validateMainConfig();
 
@@ -55,7 +53,6 @@ public class ConfigValidator {
             return false;
         }
 
-        plugin.getLogger().info("Configuration validation passed!");
         return true;
     }
 

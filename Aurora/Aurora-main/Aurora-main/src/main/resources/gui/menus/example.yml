@@ -1,0 +1,53 @@
+register-commands:
+  - "examplemenu"
+
+title: "&6Example Menu"
+rows: 6
+refresh: false
+
+open-requirements:
+  - requirement: "[permission] examplemenu.open"
+    deny-actions:
+      - "[message] &cYou do not have permission to open this menu."
+
+open-actions:
+  - "[sound] entity.villager.yes"
+
+close-actions:
+  - "[sound] entity.villager.no"
+
+filler:
+  material: black_stained_glass_pane
+  hide-tooltip: true
+
+items:
+  test:
+    priority: 1
+    material: diamond
+    name: "&6Test Item"
+    lore:
+      - "&7This is a test item."
+    slot: 13
+    on-click:
+      - "[console] say Hello test!"
+    view-requirements:
+      - "[permission] example.permission"
+      #- "[money] 1000"
+      #- "[exp-level] 30"
+      #- "[placeholder] %my_placeholder% == 10"
+      #- "[placeholder] %my_placeholder% > 10"
+      #- "[placeholder] %my_placeholder% >= 10"
+      #- "[placeholder] %my_placeholder% <= 10"
+    click-requirements:
+      - requirement: "[permission] example.permission.2"
+        deny-actions:
+          - "[message] &cYou do not have permission to use this item."
+  test2:
+    priority: 0
+    material: emerald
+    name: "&6Test Item"
+    lore:
+      - "&7This is a test item."
+    slot: 13
+    on-click:
+      - "[console] lp user {player} permission set example.permission"

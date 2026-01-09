@@ -29,7 +29,7 @@ public class EnderChestCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "This command can only be used by players!");
+            plugin.getMessageManager().send(sender, "command-player-only");
             return true;
         }
 
@@ -37,7 +37,7 @@ public class EnderChestCommand implements CommandExecutor, TabCompleter {
 
         // Check permission
         if (!player.hasPermission("vaultpack.use")) {
-            player.sendMessage(ChatColor.RED + "You don't have permission to use this command!");
+            plugin.getMessageManager().send(player, "no-permission");
             return true;
         }
 
@@ -52,20 +52,20 @@ public class EnderChestCommand implements CommandExecutor, TabCompleter {
         try {
             pageNumber = Integer.parseInt(args[0]);
         } catch (NumberFormatException e) {
-            player.sendMessage(ChatColor.RED + "Invalid page number! Use a number between 1-9.");
+            plugin.getMessageManager().send(player, "enderchest-invalid-page");
             return true;
         }
 
         // Validate page number range
         if (pageNumber < 1 || pageNumber > 9) {
-            player.sendMessage(ChatColor.RED + "Page number must be between 1 and 9!");
+            plugin.getMessageManager().send(player, "enderchest-invalid-page");
             return true;
         }
 
         // Check if page is unlocked
         if (!plugin.getDataManager().getPlayerData(player.getUniqueId()).isEnderPageUnlocked(pageNumber)) {
-            player.sendMessage(ChatColor.RED + "You haven't unlocked Ender Page " + pageNumber + " yet!");
-            player.sendMessage(ChatColor.YELLOW + "Use /enderchest to view all pages and unlock them.");
+            plugin.getMessageManager().send(player, "enderchest-page-locked", "%page%", String.valueOf(pageNumber));
+            plugin.getMessageManager().send(player, "enderchest-view-pages");
             return true;
         }
 

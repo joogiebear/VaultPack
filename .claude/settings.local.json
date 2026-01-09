@@ -21,7 +21,14 @@
       "Bash(call gradlew.bat clean shadowJar)",
       "Bash(./gradlew.bat:*)",
       "Bash(unzip:*)",
-      "Bash(powershell -Command \"& ''.\\gradlew.bat'' clean shadowJar\")"
+      "Bash(powershell -Command \"& ''.\\gradlew.bat'' clean shadowJar\")",
+      "Bash(powershell -Command:*)",
+      "WebFetch(domain:repo.auxilor.io)",
+      "Skill(compatibility-check)",
+      "Bash(find:*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

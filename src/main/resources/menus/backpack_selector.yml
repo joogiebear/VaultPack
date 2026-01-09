@@ -58,11 +58,11 @@ slots:
       - "&7• &fCraft &7backpacks with recipes"
       - "&7• &fPlace &7them in empty slots"
       - "&7• &fUpgrade &7to increase size"
-      - "&7• &fUnlock &7more slots with &6/bp unlock"
+      - "&7• &fUnlock &7more slots via this menu"
       - ""
       - "&7Tier progression:"
       - "  &aSmall &7→ &9Medium &7→ &5Large"
-      - "  &7→ &dHuge &7→ &6Massive &7→ &cColossal"
+      - "  &7→ &dGreater &7→ &6Jumbo"
 
   # ========== NAVIGATION ==========
   close:

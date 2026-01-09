@@ -1,0 +1,47 @@
+config-version: 1
+
+title: "Cauldron recipe"
+rows: 4
+
+slots:
+  input: 10
+  result: 16
+  prev-recipe: 34
+  next-recipe: 35
+  fluid-slots:
+    one: [ 22 ]
+    two: [ 21, 23 ]
+    three: [ 21, 22, 23 ]
+
+fluid-materials:
+  water:
+    material: WATER_BUCKET
+    name: ""
+    hide-tooltip: true
+  lava:
+    material: LAVA_BUCKET
+    name: ""
+    hide-tooltip: true
+  powder-snow:
+    material: POWDER_SNOW_BUCKET
+    name: ""
+    hide-tooltip: true
+
+items:
+  filler:
+    material: black_stained_glass_pane
+    name: ""
+    hide-tooltip: true
+  back:
+    material: arrow
+    name: "&fBack"
+    slot: 27
+    lore:
+      - "&7Click to go back"
+
+custom-items:
+  cauldron:
+    material: CAULDRON
+    name: ""
+    slot: 13
+    hide-tooltip: true

@@ -45,19 +45,32 @@ public class BackpackManager {
         }
     }
 
+    /**
+     * Open a backpack inventory for a player
+     *
+     * @param player The player opening the backpack
+     * @param slotNumber The backpack slot number (1-18)
+     */
     public void openBackpack(Player player, int slotNumber) {
+        // Input validation
+        if (slotNumber < com.vaultpack.utils.Constants.MIN_BACKPACK_SLOT ||
+            slotNumber > com.vaultpack.utils.Constants.MAX_BACKPACK_SLOT) {
+            plugin.getMessageManager().send(player, "invalid-slot-number");
+            return;
+        }
+
         PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         // Check if slot is unlocked
         if (!data.isSlotUnlocked(slotNumber)) {
-            player.sendMessage(ChatColor.RED + "This slot is locked!");
+            plugin.getMessageManager().send(player, "slot-locked");
             return;
         }
 
         // Check if backpack exists in slot
         Backpack backpack = data.getBackpack(slotNumber);
         if (backpack == null) {
-            player.sendMessage(ChatColor.RED + "No backpack in this slot!");
+            plugin.getMessageManager().send(player, "backpack-remove-fail");
             return;
         }
 
@@ -67,10 +80,13 @@ public class BackpackManager {
         String title = ChatColor.translateAlternateColorCodes('&',
                 "&8Backpack #" + slotNumber + " &7[" + backpack.getTier().getDisplayName() + "]");
 
-        Inventory inventory = Bukkit.createInventory(null, totalRows * 9, title);
+        // Use InventoryHolder pattern for type-safe inventory identification
+        com.vaultpack.gui.holders.BackpackInventoryHolder holder = new com.vaultpack.gui.holders.BackpackInventoryHolder(slotNumber);
+        Inventory inventory = Bukkit.createInventory(holder, totalRows * 9, title);
+        holder.setInventory(inventory);
 
         // Add navigation header (row 1, slots 0-8)
-        addNavigationHeader(inventory, player, slotNumber, data);
+        com.vaultpack.gui.BackpackGUIBuilder.addNavigationHeader(inventory, player, slotNumber, data);
 
         // Load backpack contents (starting from row 2, slot 9)
         Map<Integer, ItemStack> contents = backpack.getContents();
@@ -95,128 +111,6 @@ public class BackpackManager {
             " &7(" + backpack.getUsedSlots() + "/" + backpack.getSize() + ")");
     }
 
-    private void addNavigationHeader(Inventory inventory, Player player, int currentSlot, PlayerBackpackData data) {
-        // Player head textures
-        String firstTexture = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWQ3MDdkYjQ2YTVhY2JmZWJmNjEyMzk1MzZkMjU2NDgxMzRiYjQzYjY1YzE2NzE2YmEzMjljNmRiZjQxMiJ9fX0=";
-        String previousTexture = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTVkYTQ4NDcyNzI1ODIyNjViZGFjYTM2NzIzN2M5NjEyMmIxMzlmNGU1OTdmYmM2NjY3ZDNmYjc1ZmVhN2NmNiJ9fX0=";
-        String nextTexture = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjUyN2ViYWU5ZjE1MzE1NGE3ZWQ0OWM4OGMwMmI1YTlhOWNhN2NiMTYxOGQ5OTE0YTNkOWRmOGNjYjNjODQifX19";
-        String lastTexture = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWI3MThhYmUxMDI0NzYyYzFjNTIyNWM5YjNjZjk0M2EwMTRmNTRkZDhkNGQ0NjRhMmQ2MWYwOThjMDdkOWUifX19";
-
-        // Slot 0: Close button
-        inventory.setItem(0, createButton(org.bukkit.Material.BARRIER, "&c&lClose",
-            "&7Click to close this backpack"));
-
-        // Slot 1: Back to all backpacks
-        inventory.setItem(1, createButton(org.bukkit.Material.CHEST, "&e&lAll Backpacks",
-            "&7Return to backpack menu"));
-
-        // Find first and last backpack slots
-        int firstSlot = -1;
-        int lastSlot = -1;
-        for (int i = 1; i <= 18; i++) {
-            if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
-                if (firstSlot == -1) firstSlot = i;
-                lastSlot = i;
-            }
-        }
-
-        // Slot 5: First backpack
-        if (firstSlot != -1 && firstSlot != currentSlot) {
-            inventory.setItem(5, createButtonWithTexture(firstTexture, "&a&lFirst Backpack",
-                "&7Jump to backpack #" + firstSlot));
-        } else {
-            inventory.setItem(5, createButton(org.bukkit.Material.GRAY_DYE, "&7First Backpack",
-                "&cAlready at first or only backpack"));
-        }
-
-        // Slot 6: Previous backpack
-        int previousSlot = findPreviousBackpack(data, currentSlot);
-        if (previousSlot != -1) {
-            inventory.setItem(6, createButtonWithTexture(previousTexture, "&e&lPrevious",
-                "&7Go to backpack #" + previousSlot));
-        } else {
-            inventory.setItem(6, createButton(org.bukkit.Material.GRAY_DYE, "&7Previous",
-                "&cNo previous backpack"));
-        }
-
-        // Slot 7: Next backpack
-        int nextSlot = findNextBackpack(data, currentSlot);
-        if (nextSlot != -1) {
-            inventory.setItem(7, createButtonWithTexture(nextTexture, "&e&lNext",
-                "&7Go to backpack #" + nextSlot));
-        } else {
-            inventory.setItem(7, createButton(org.bukkit.Material.GRAY_DYE, "&7Next",
-                "&cNo next backpack"));
-        }
-
-        // Slot 8: Last backpack
-        if (lastSlot != -1 && lastSlot != currentSlot) {
-            inventory.setItem(8, createButtonWithTexture(lastTexture, "&a&lLast Backpack",
-                "&7Jump to backpack #" + lastSlot));
-        } else {
-            inventory.setItem(8, createButton(org.bukkit.Material.GRAY_DYE, "&7Last Backpack",
-                "&cAlready at last or only backpack"));
-        }
-    }
-
-    private ItemStack createButton(org.bukkit.Material material, String name, String... lore) {
-        ItemStack item = new ItemStack(material);
-        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
-
-        if (meta != null) {
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-
-            List<String> loreList = new ArrayList<>();
-            for (String line : lore) {
-                loreList.add(ChatColor.translateAlternateColorCodes('&', line));
-            }
-            meta.setLore(loreList);
-
-            item.setItemMeta(meta);
-        }
-
-        return item;
-    }
-
-    private ItemStack createButtonWithTexture(String texture, String name, String... lore) {
-        ItemStack item = new ItemStack(org.bukkit.Material.PLAYER_HEAD);
-        org.bukkit.inventory.meta.SkullMeta meta = (org.bukkit.inventory.meta.SkullMeta) item.getItemMeta();
-
-        if (meta != null) {
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-
-            List<String> loreList = new ArrayList<>();
-            for (String line : lore) {
-                loreList.add(ChatColor.translateAlternateColorCodes('&', line));
-            }
-            meta.setLore(loreList);
-
-            // Apply custom texture
-            applyTexture(meta, texture);
-
-            item.setItemMeta(meta);
-        }
-
-        return item;
-    }
-
-    private int findPreviousBackpack(PlayerBackpackData data, int currentSlot) {
-        for (int i = currentSlot - 1; i >= 1; i--) {
-            if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private int findNextBackpack(PlayerBackpackData data, int currentSlot) {
-        for (int i = currentSlot + 1; i <= 18; i++) {
-            if (data.isSlotUnlocked(i) && data.hasBackpack(i)) {
-                return i;
-            }
-        }
-        return -1;
-    }
 
     public void closeBackpack(Player player) {
         Integer slotNumber = openBackpacks.remove(player.getUniqueId());
@@ -245,8 +139,8 @@ public class BackpackManager {
             backpack.setContents(contents);
             backpack.setActiveInventory(null);
 
-            // Save to file
-            plugin.getDataManager().savePlayerData(player.getUniqueId());
+            // CRITICAL FIX: Save synchronously to prevent race conditions when rapidly opening/closing
+            plugin.getDataManager().savePlayerDataSync(player.getUniqueId());
         }
     }
 
@@ -258,7 +152,21 @@ public class BackpackManager {
         return openBackpacks.get(player.getUniqueId());
     }
 
+    /**
+     * Create a new backpack in a slot
+     *
+     * @param player The player creating the backpack
+     * @param slotNumber The backpack slot number (1-18)
+     * @param tier The backpack tier
+     */
     public void createBackpack(Player player, int slotNumber, BackpackTier tier) {
+        // Input validation
+        if (slotNumber < com.vaultpack.utils.Constants.MIN_BACKPACK_SLOT ||
+            slotNumber > com.vaultpack.utils.Constants.MAX_BACKPACK_SLOT) {
+            plugin.getMessageManager().send(player, "invalid-slot-number");
+            return;
+        }
+
         PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         Backpack backpack = new Backpack(player.getUniqueId(), slotNumber, tier);
@@ -266,10 +174,25 @@ public class BackpackManager {
 
         plugin.getDataManager().savePlayerData(player.getUniqueId());
 
-        player.sendMessage(ChatColor.GREEN + "Backpack placed in slot #" + slotNumber + "!");
+        plugin.getMessageManager().send(player, "backpack-placed", "%slot%", String.valueOf(slotNumber));
     }
 
+    /**
+     * Create a new backpack with a specific type in a slot
+     *
+     * @param player The player creating the backpack
+     * @param slotNumber The backpack slot number (1-18)
+     * @param tier The backpack tier
+     * @param backpackTypeId The backpack type ID
+     */
     public void createBackpack(Player player, int slotNumber, BackpackTier tier, String backpackTypeId) {
+        // Input validation
+        if (slotNumber < com.vaultpack.utils.Constants.MIN_BACKPACK_SLOT ||
+            slotNumber > com.vaultpack.utils.Constants.MAX_BACKPACK_SLOT) {
+            plugin.getMessageManager().send(player, "invalid-slot-number");
+            return;
+        }
+
         PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         Backpack backpack = new Backpack(player.getUniqueId(), slotNumber, tier, backpackTypeId);
@@ -277,7 +200,7 @@ public class BackpackManager {
 
         plugin.getDataManager().savePlayerData(player.getUniqueId());
 
-        player.sendMessage(ChatColor.GREEN + "Backpack placed in slot #" + slotNumber + "!");
+        plugin.getMessageManager().send(player, "backpack-placed", "%slot%", String.valueOf(slotNumber));
     }
 
     public void removeBackpack(Player player, int slotNumber) {
@@ -285,7 +208,7 @@ public class BackpackManager {
         Backpack backpack = data.getBackpack(slotNumber);
 
         if (backpack == null) {
-            player.sendMessage(ChatColor.RED + "No backpack in this slot!");
+            plugin.getMessageManager().send(player, "backpack-remove-fail");
             return;
         }
 
@@ -314,19 +237,12 @@ public class BackpackManager {
             data.removeBackpack(slotNumber);
             plugin.getDataManager().savePlayerData(player.getUniqueId());
 
-            player.sendMessage(ChatColor.GREEN + "Backpack removed from slot #" + slotNumber + "!");
-            if (itemCount > 0) {
-                player.sendMessage(ChatColor.YELLOW + "" + itemCount + " item(s) dropped on the ground!");
-            }
+            plugin.getMessageManager().send(player, "backpack-removed", "%slot%", String.valueOf(slotNumber));
         } else {
             // First click - ask for confirmation
             pendingRemovals.put(player.getUniqueId(), new RemovalConfirmation(slotNumber));
 
-            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "⚠ WARNING ⚠");
-            player.sendMessage(ChatColor.YELLOW + "Right-click again to confirm backpack removal!");
-            player.sendMessage(ChatColor.GRAY + "All items will be dropped on the ground.");
-            player.sendMessage(ChatColor.GRAY + "This action cannot be undone!");
-            player.sendMessage(ChatColor.DARK_GRAY + "(Confirmation expires in 10 seconds)");
+            plugin.getMessageManager().send(player, "backpack-remove-confirm");
         }
     }
 
@@ -335,12 +251,12 @@ public class BackpackManager {
         Backpack backpack = data.getBackpack(slotNumber);
 
         if (backpack == null) {
-            player.sendMessage(ChatColor.RED + "No backpack in this slot!");
+            plugin.getMessageManager().send(player, "backpack-upgrade-no-backpack");
             return;
         }
 
         if (!backpack.canUpgrade()) {
-            player.sendMessage(ChatColor.RED + "This backpack is already at maximum size!");
+            plugin.getMessageManager().send(player, "backpack-upgrade-max");
             return;
         }
 
@@ -351,7 +267,7 @@ public class BackpackManager {
         int cost = plugin.getConfigManager().getUpgradeCost(oldTier, newTier);
         if (cost > 0 && plugin.isVaultEnabled()) {
             if (!plugin.getEconomyManager().hasMoney(player, cost)) {
-                player.sendMessage(ChatColor.RED + "You don't have enough money! Need: $" + cost);
+                plugin.getMessageManager().send(player, "backpack-upgrade-fail", "%cost%", String.valueOf(cost));
                 return;
             }
 
@@ -362,15 +278,29 @@ public class BackpackManager {
         backpack.upgrade();
         plugin.getDataManager().savePlayerData(player.getUniqueId());
 
-        player.sendMessage(ChatColor.GREEN + "Backpack upgraded from " + oldTier.getDisplayName() +
-                " to " + newTier.getDisplayName() + "!");
+        plugin.getMessageManager().send(player, "backpack-upgraded",
+            "%old_tier%", oldTier.getDisplayName(),
+            "%new_tier%", newTier.getDisplayName());
     }
 
+    /**
+     * Unlock a backpack slot for a player
+     *
+     * @param player The player unlocking the slot
+     * @param slotNumber The backpack slot number (1-18)
+     */
     public void unlockSlot(Player player, int slotNumber) {
+        // Input validation
+        if (slotNumber < com.vaultpack.utils.Constants.MIN_BACKPACK_SLOT ||
+            slotNumber > com.vaultpack.utils.Constants.MAX_BACKPACK_SLOT) {
+            plugin.getMessageManager().send(player, "invalid-slot-number");
+            return;
+        }
+
         PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
 
         if (data.isSlotUnlocked(slotNumber)) {
-            player.sendMessage(ChatColor.RED + "This slot is already unlocked!");
+            plugin.getMessageManager().send(player, "slot-already-unlocked");
             return;
         }
 
@@ -380,7 +310,7 @@ public class BackpackManager {
             if (player.hasPermission(permission)) {
                 data.unlockSlot(slotNumber);
                 plugin.getDataManager().savePlayerData(player.getUniqueId());
-                player.sendMessage(ChatColor.GREEN + "Slot #" + slotNumber + " unlocked!");
+                plugin.getMessageManager().send(player, "slot-unlocked", "%slot%", String.valueOf(slotNumber));
                 return;
             }
         }
@@ -390,16 +320,16 @@ public class BackpackManager {
             int cost = plugin.getConfigManager().getSlotUnlockCost(slotNumber);
 
             if (!plugin.getEconomyManager().hasMoney(player, cost)) {
-                player.sendMessage(ChatColor.RED + "You don't have enough money! Need: $" + cost);
+                plugin.getMessageManager().send(player, "slot-unlock-fail", "%cost%", String.valueOf(cost));
                 return;
             }
 
             plugin.getEconomyManager().takeMoney(player, cost);
             data.unlockSlot(slotNumber);
             plugin.getDataManager().savePlayerData(player.getUniqueId());
-            player.sendMessage(ChatColor.GREEN + "Slot #" + slotNumber + " unlocked for $" + cost + "!");
+            plugin.getMessageManager().send(player, "slot-unlocked", "%slot%", String.valueOf(slotNumber));
         } else {
-            player.sendMessage(ChatColor.RED + "You don't have permission to unlock this slot!");
+            plugin.getMessageManager().send(player, "slot-unlock-no-permission");
         }
     }
 
@@ -662,7 +592,7 @@ public class BackpackManager {
             if (backpackType != null && backpackType.getMaterial() == org.bukkit.Material.PLAYER_HEAD && backpackType.hasTexture()) {
                 item = new org.bukkit.inventory.ItemStack(org.bukkit.Material.PLAYER_HEAD);
                 org.bukkit.inventory.meta.SkullMeta skullMeta = (org.bukkit.inventory.meta.SkullMeta) item.getItemMeta();
-                applyTexture(skullMeta, backpackType.getTexture());
+                com.vaultpack.utils.ItemBuilderUtil.applyTexture(skullMeta, backpackType.getTexture());
                 skullMeta.setDisplayName(ChatColor.GOLD + "Backpack #" + slotNumber);
                 item.setItemMeta(skullMeta);
             } else {
@@ -725,40 +655,4 @@ public class BackpackManager {
         return pending != null && !pending.isExpired() && pending.slotNumber == slotNumber;
     }
 
-    private void applyTexture(org.bukkit.inventory.meta.SkullMeta skullMeta, String texture) {
-        try {
-            // Use Bukkit's profile API if available (Paper 1.18.2+)
-            org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createPlayerProfile(java.util.UUID.randomUUID());
-            org.bukkit.profile.PlayerTextures textures = profile.getTextures();
-
-            // Decode the base64 texture to get the URL
-            String decoded = new String(java.util.Base64.getDecoder().decode(texture));
-            String url = decoded.substring(decoded.indexOf("\"url\":\"") + 7, decoded.lastIndexOf("\""));
-
-            textures.setSkin(new java.net.URL(url));
-            profile.setTextures(textures);
-            skullMeta.setOwnerProfile(profile);
-        } catch (Exception e) {
-            // Fallback to reflection method for older versions
-            try {
-                Class<?> gameProfileClass = Class.forName("com.mojang.authlib.GameProfile");
-                Class<?> propertyClass = Class.forName("com.mojang.authlib.properties.Property");
-
-                Object profile = gameProfileClass.getConstructor(java.util.UUID.class, String.class)
-                        .newInstance(java.util.UUID.randomUUID(), null);
-                Object properties = gameProfileClass.getMethod("getProperties").invoke(profile);
-                Object property = propertyClass.getConstructor(String.class, String.class)
-                        .newInstance("textures", texture);
-
-                properties.getClass().getMethod("put", Object.class, Object.class)
-                        .invoke(properties, "textures", property);
-
-                java.lang.reflect.Field profileField = skullMeta.getClass().getDeclaredField("profile");
-                profileField.setAccessible(true);
-                profileField.set(skullMeta, profile);
-            } catch (Exception ex) {
-                plugin.getLogger().warning("Failed to apply texture: " + ex.getMessage());
-            }
-        }
-    }
 }

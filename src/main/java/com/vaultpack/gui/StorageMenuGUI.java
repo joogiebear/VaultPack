@@ -40,7 +40,7 @@ public class StorageMenuGUI {
         // Fetch menu config dynamically to support reload
         MenuConfig menuConfig = plugin.getMenuManager().getMenu("storage");
         if (menuConfig == null) {
-            player.sendMessage(ChatColor.RED + "Storage menu not configured!");
+            plugin.getMessageManager().send(player, "data-load-error");
             return;
         }
 
@@ -226,14 +226,17 @@ public class StorageMenuGUI {
                         );
                     }
 
-                    // Add status lore
+                    // Add status lore (config-driven)
                     updatedLore.add("");
-                    updatedLore.add("§7Status: §aPlaced in slot #" + slotNumber);
-                    updatedLore.add("§7Items: §f" + backpack.getUsedSlots() + "/" + backpack.getSize());
+                    updatedLore.add(plugin.getMessageManager().getMessage("gui.storage-backpack-status.placed",
+                        "%slot%", String.valueOf(slotNumber)));
+                    updatedLore.add(plugin.getMessageManager().getMessage("gui.storage-backpack-status.items",
+                        "%used%", String.valueOf(backpack.getUsedSlots()),
+                        "%size%", String.valueOf(backpack.getSize())));
                     if (!backpack.isEmpty()) {
-                        updatedLore.add("§c§lContains items - Cannot remove!");
+                        updatedLore.add(plugin.getMessageManager().getMessage("gui.storage-backpack-status.contains-items"));
                     } else {
-                        updatedLore.add("§a§lClick to remove (empty)");
+                        updatedLore.add(plugin.getMessageManager().getMessage("gui.storage-backpack-status.click-to-remove"));
                     }
 
                     meta.setLore(updatedLore);

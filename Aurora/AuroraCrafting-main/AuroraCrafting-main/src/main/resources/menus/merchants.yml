@@ -1,0 +1,16 @@
+title: "Merchants"
+
+rows: 6
+
+filler:
+  material: black_stained_glass_pane
+  hide-tooltip: true
+  name: ""
+
+custom-items:
+  close:
+    material: barrier
+    name: "&cClose"
+    slot: 49
+    on-click:
+      - "[close]"

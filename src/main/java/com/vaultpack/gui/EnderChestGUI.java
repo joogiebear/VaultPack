@@ -36,7 +36,7 @@ public class EnderChestGUI {
         // Fetch menu config dynamically to support reload
         MenuConfig menuConfig = plugin.getMenuManager().getMenu("enderchest");
         if (menuConfig == null) {
-            player.sendMessage(ChatColor.RED + "Ender chest menu not configured!");
+            plugin.getMessageManager().send(player, "data-load-error");
             return;
         }
 
@@ -272,7 +272,7 @@ public class EnderChestGUI {
         if (player.hasPermission(permission)) {
             // Unlock with permission
             data.unlockEnderPage(pageNumber);
-            player.sendMessage(ChatColor.GREEN + "Ender page " + pageNumber + " unlocked!");
+            plugin.getMessageManager().send(player, "ender-page-unlocked", "%page%", String.valueOf(pageNumber));
             playSound(player, menuConfig.getSound("unlock"));
             // Refresh menu
             open(player);
@@ -286,16 +286,18 @@ public class EnderChestGUI {
             if (plugin.getEconomy().has(player, cost)) {
                 plugin.getEconomy().withdrawPlayer(player, cost);
                 data.unlockEnderPage(pageNumber);
-                player.sendMessage(ChatColor.GREEN + "Ender page " + pageNumber + " unlocked for $" + cost + "!");
+                plugin.getMessageManager().send(player, "ender-page-unlocked-cost",
+                    "%page%", String.valueOf(pageNumber),
+                    "%cost%", String.valueOf(cost));
                 playSound(player, menuConfig.getSound("unlock"));
                 // Refresh menu
                 open(player);
             } else {
-                player.sendMessage(ChatColor.RED + "You need $" + cost + " to unlock this page!");
+                plugin.getMessageManager().send(player, "slot-unlock-fail", "%cost%", String.valueOf(cost));
                 playSound(player, menuConfig.getSound("error"));
             }
         } else {
-            player.sendMessage(ChatColor.RED + "You don't have permission to unlock this page!");
+            plugin.getMessageManager().send(player, "slot-unlock-no-permission");
             playSound(player, menuConfig.getSound("error"));
         }
     }
@@ -307,14 +309,14 @@ public class EnderChestGUI {
         int cost = plugin.getConfigManager().getEnderPageUnlockCost(pageNumber);
         String permission = plugin.getConfigManager().getEnderPagePermission(pageNumber);
 
-        player.sendMessage("");
-        player.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Ender Page " + pageNumber + " - Unlock Info");
-        player.sendMessage(ChatColor.GRAY + "Capacity: " + ChatColor.AQUA + "45 slots " + ChatColor.GRAY + "(5 rows)");
-        player.sendMessage("");
-        player.sendMessage(ChatColor.YELLOW + "Unlock Options:");
-        player.sendMessage(ChatColor.DARK_AQUA + "  • " + ChatColor.GRAY + "Economy: " + ChatColor.GREEN + "$" + cost);
-        player.sendMessage(ChatColor.DARK_AQUA + "  • " + ChatColor.GRAY + "Permission: " + ChatColor.WHITE + permission);
-        player.sendMessage("");
+        List<String> infoMessages = plugin.getMessageManager().getMessageList("enderchest.unlock-info");
+        for (String message : infoMessages) {
+            String formatted = message
+                .replace("%page%", String.valueOf(pageNumber))
+                .replace("%cost%", String.valueOf(cost))
+                .replace("%permission%", permission);
+            player.sendMessage(formatted);
+        }
     }
 
     /**

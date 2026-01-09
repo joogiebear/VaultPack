@@ -1,0 +1,8 @@
+recipes:
+  - id: netherite_example
+    # Every field except result is optional below
+    template: "minecraft:emerald"
+    base: "minecraft:stone_sword"
+    addition: "minecraft:diamond"
+    result: "minecraft:netherite_sword"
+

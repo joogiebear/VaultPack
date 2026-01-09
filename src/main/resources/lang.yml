@@ -1,7 +1,7 @@
-# EcoBackpack Language File
+# VaultPack Language File
 # Customize all messages here
 
-prefix: "&8[&6Backpack&8]&r "
+prefix: "&8[&6VaultPack&8]&r "
 
 # Slot unlock messages
 slot-unlocked: "&aYou unlocked backpack slot #%slot%!"
@@ -9,29 +9,53 @@ slot-unlock-fail: "&cYou don't have enough money! Required: &e$%cost%"
 slot-unlock-no-permission: "&cYou don't have permission to unlock this slot!"
 slot-already-unlocked: "&cThis slot is already unlocked!"
 max-slots-reached: "&cYou've reached the maximum number of backpack slots! (%max%)"
+invalid-slot-number: "&cInvalid slot number! Must be between 1 and 18."
+invalid-page-number: "&cInvalid page number! Must be between 1 and 9."
 
 # Backpack upgrade messages
 backpack-upgraded: "&aBackpack upgraded from &f%old_tier% &ato &f%new_tier%&a!"
 backpack-upgrade-fail: "&cYou don't have enough money! Required: &e$%cost%"
 backpack-upgrade-max: "&cThis backpack is already at maximum size!"
 backpack-upgrade-no-backpack: "&cThere's no backpack in this slot to upgrade!"
+backpack-swap-size-error: "&cYou can only swap with a LARGER backpack!"
+backpack-swap-size-info: "&eCurrent: %old_size% slots | New: %new_size% slots"
+backpack-swap-success: "&aBackpack upgraded from %old_size% to %new_size% slots!"
+backpack-swap-preserved: "&eAll items have been preserved!"
 
 # Backpack placement messages
 backpack-placed: "&aBackpack placed in slot #%slot%!"
+backpack-placed-type: "&aPlaced %type% &ain slot #%slot%!"
 backpack-place-fail: "&cYou must hold a backpack item in your hand!"
 backpack-place-occupied: "&cThis slot already has a backpack! Remove it first."
+backpack-item-only: "&cYou can only place backpack items in these slots!"
+backpack-item-invalid: "&cThis backpack item is invalid!"
+backpack-type-unknown: "&cUnknown backpack type: %type%"
+backpack-place-error: "&cFailed to place backpack: %error%"
 slot-locked: "&cThis slot is locked! Unlock it first."
+no-permission: "&cYou don't have permission to do that!"
 
 # Backpack removal messages
 backpack-removed: "&aBackpack removed from slot #%slot% and returned to inventory!"
+backpack-removed-type: "&aRemoved %type% &afrom slot #%slot%!"
+backpack-removed-dropped: "&eYour inventory is full! Backpack dropped at your feet."
 backpack-remove-fail: "&cThere's no backpack in this slot!"
+backpack-remove-not-empty: "&cThis backpack contains items! Empty it before removing."
+backpack-remove-tip: "&eTip: You can upgrade backpacks without removing them."
 backpack-remove-full-inventory: "&cYour inventory is full! Cannot remove backpack."
 backpack-remove-confirm: "&eRight-click again to confirm removal. Items will be safe!"
+backpack-remove-error: "&cFailed to remove backpack: %error%"
 
 # Backpack usage messages
 backpack-opened: "&aOpened backpack #%slot%"
 backpack-full: "&cThis backpack is full! (%used%/%size% slots)"
 backpack-empty: "&7This backpack is empty."
+
+# Ender chest messages
+ender-page-unlocked: "&aEnder page %page% unlocked!"
+ender-page-unlocked-cost: "&aEnder page %page% unlocked for $%cost%!"
+enderchest-invalid-page: "&cInvalid page number! Use a number between 1-9."
+enderchest-page-locked: "&cYou haven't unlocked Ender Page %page% yet!"
+enderchest-view-pages: "&eUse /enderchest to view all pages and unlock them."
 
 # Error messages
 no-permission: "&cYou don't have permission to do that!"
@@ -40,12 +64,25 @@ player-not-found: "&cPlayer not found!"
 command-player-only: "&cThis command can only be used by players!"
 economy-not-found: "&cEconomy plugin not found! Contact an administrator."
 data-load-error: "&cFailed to load your backpack data! Contact an administrator."
+menu-not-found: "&cMenu not found: %menu%"
+menu-not-implemented: "&cMenu not implemented: %menu%"
+feature-coming-soon: "&eThis feature is coming soon!"
 
 # Admin messages
+admin-unknown-command: "&cUnknown command! Use /vaultpack help"
+admin-reload-start: "&eReloading VaultPack..."
 admin-slot-given: "&aGave %player% access to slot #%slot%!"
+admin-slot-given-target: "&aYou've been given access to backpack slot #%slot%!"
 admin-slot-removed: "&cRemoved %player%'s access to slot #%slot%!"
 admin-backpack-cleared: "&aCleared %player%'s backpack #%slot%!"
-admin-reload: "&aEcoBackpack configuration reloaded!"
+admin-backpack-cleared-target: "&eYour backpack #%slot% was cleared by an admin!"
+admin-backpack-no-backpack: "&cPlayer doesn't have a backpack in that slot!"
+admin-backpack-given: "&aGave %player% %amount%x %type%!"
+admin-backpack-given-target: "&aYou received %amount%x %type%!"
+admin-reload: "&aVaultPack configuration reloaded!"
+admin-invalid-amount: "&cInvalid amount!"
+admin-invalid-type: "&cInvalid backpack type! Available types:"
+admin-player-offline: "&cPlayer not found or not online!"
 
 # GUI item names and lore
 gui:
@@ -92,6 +129,12 @@ gui:
     name: "&cClose Menu"
     lore:
       - "&7Click to close"
+
+  storage-backpack-status:
+    placed: "&7Status: &aPlaced in slot #%slot%"
+    items: "&7Items: &f%used%/%size%"
+    contains-items: "&c&lContains items - Cannot remove!"
+    click-to-remove: "&a&lClick to remove (empty)"
 
   info-button:
     name: "&bBackpack Info"
@@ -141,16 +184,114 @@ fullness-bar:
 # Command help
 commands:
   help:
-    - "&8&m                                   "
-    - "&6&lEcoBackpack Commands"
-    - "&8&m                                   "
+    - "&8-----------------------------"
+    - "&6&lVaultPack Commands"
+    - "&8-----------------------------"
     - "&e/backpack &7- Open backpack menu"
+    - "&e/backpack [slot] &7- Open specific backpack"
     - "&e/backpack help &7- Show this help"
-    - "&e/bp &7- Alias for /backpack"
     - ""
-    - "&6&lAdmin Commands"
-    - "&e/backpack give <player> <slot> &7- Give slot access"
-    - "&e/backpack remove <player> <slot> &7- Remove slot access"
-    - "&e/backpack clear <player> <slot> &7- Clear backpack contents"
-    - "&e/backpack reload &7- Reload configuration"
-    - "&8&m                                   "
+    - "&7Aliases: &f/bp, /bag, /bags"
+    - ""
+    - "&e/enderchest [page] &7- Open ender chest"
+    - "&7Aliases: &f/ec, /echest"
+    - ""
+    - "&e/storage &7- Open unified storage menu"
+    - "&7Aliases: &f/vault, /st"
+    - "&8-----------------------------"
+
+# Ender chest unlock info
+enderchest:
+  unlock-info:
+    - ""
+    - "&5&lEnder Page %page% - Unlock Info"
+    - "&7Capacity: &b45 slots &7(5 rows)"
+    - ""
+    - "&eUnlock Options:"
+    - "&3  • &7Economy: &a$%cost%"
+    - "&3  • &7Permission: &f%permission%"
+    - ""
+
+# Admin command messages
+admin:
+  reload-success:
+    - "&aVaultPack v%version% reloaded successfully!"
+    - "&7  • Config reloaded"
+    - "&7  • Menus reloaded"
+    - "&7  • Backpack types reloaded"
+  version:
+    - "&8-----------------------------"
+    - "&6&lVaultPack"
+    - "&7Version: &f%version%"
+    - "&7Author: &fVaultPack Team"
+    - "&7Vault: %vault%"
+    - "&7PlaceholderAPI: %papi%"
+    - "&8-----------------------------"
+  reset-success:
+    - "&aSuccessfully reset data for %player%"
+    - "&7  • All backpacks removed"
+    - "&7  • All ender chest pages cleared"
+    - "&7  • Slot unlocks reset to default"
+  reset-target: "&eYour VaultPack data has been reset by an admin!"
+  inspect-header:
+    - "&8=========================================="
+    - "&6&lVaultPack Data: &e%player%"
+    - "&8=========================================="
+  inspect-backpacks:
+    - "&b&lBackpacks:"
+    - "&7  Unlocked Slots: &f%unlocked%/%max%"
+    - "&7  Active Backpacks: &f%active%"
+    - "&7  Total Storage: &f%total_slots% slots"
+    - "&7  Used Storage: &f%used_slots% slots"
+  inspect-enderchest:
+    - "&5&lEnder Chest:"
+    - "&7  Unlocked Pages: &f%unlocked%/9"
+    - "&7  Total Storage: &f%total_slots% slots"
+    - "&7  Used Storage: &f%used_slots% slots"
+  inspect-footer:
+    - "&8=========================================="
+  help-admin:
+    - "&8-----------------------------"
+    - "&6&lVaultPack Admin Commands"
+    - "&8-----------------------------"
+    - "&e/vaultpack help &7- Show this help"
+    - "&e/vaultpack version &7- Show plugin info"
+    - "&e/vaultpack reload &7- Reload configuration"
+    - "&e/vaultpack give <player> <slot> &7- Give slot access"
+    - "&e/vaultpack giveitem <player> <type> [amt] &7- Give backpack item"
+    - "&e/vaultpack list &7- List backpack types"
+    - "&e/vaultpack clear <player> <slot> &7- Clear backpack contents"
+    - "&e/vaultpack reset <player> &7- Reset ALL player data"
+    - "&e/vaultpack inspect <player> &7- View player's storage"
+    - ""
+    - "&7Player commands:"
+    - "&e/storage &7- Open unified storage GUI"
+    - "&e/backpack &7- Open backpack selector"
+    - "&e/backpack [slot] &7- Open specific backpack"
+    - "&e/enderchest [page] &7- Open ender chest"
+    - "&8-----------------------------"
+  help-player:
+    - "&8-----------------------------"
+    - "&6&lVaultPack Commands"
+    - "&8-----------------------------"
+    - "&e/vaultpack help &7- Show this help"
+    - "&e/vaultpack version &7- Show plugin info"
+    - ""
+    - "&7Available commands:"
+    - "&e/storage &7- Open unified storage GUI"
+    - "&e/backpack &7- Open backpack selector"
+    - "&e/backpack [slot] &7- Open specific backpack"
+    - "&e/enderchest [page] &7- Open ender chest"
+    - "&8-----------------------------"
+  help-admin-hint:
+    - ""
+    - "&6&lAdmin Commands:"
+    - "&7Use &e/vaultpack help &7for admin commands"
+  usage:
+    give: "&cUsage: /vaultpack give <player> <slot>"
+    giveitem: "&cUsage: /vaultpack giveitem <player> <backpack_type> [amount]"
+    giveitem-types: "&7Available types: %types%"
+    clear: "&cUsage: /vaultpack clear <player> <slot>"
+    reset: "&cUsage: /vaultpack reset <player>"
+    reset-warning: "&eWarning: This will delete ALL backpack and ender chest data!"
+    inspect: "&cUsage: /vaultpack inspect <player>"

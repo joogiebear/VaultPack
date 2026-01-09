@@ -109,11 +109,6 @@ public class ConfigManager {
 
         // GUI items no longer loaded here - handled by MenuManager
         guiItems = new HashMap<>();
-
-        plugin.getLogger().info("Configuration loaded successfully!");
-        plugin.getLogger().info("Max backpack slots: " + maxBackpackSlots);
-        plugin.getLogger().info("Default unlocked slots: " + defaultUnlockedSlots);
-        plugin.getLogger().info("Blacklisted materials: " + blacklistedMaterials.size());
     }
 
     public int getMaxBackpackSlots() {

@@ -1,0 +1,50 @@
+name: AuroraQuests
+version: '${version}'
+main: gg.auroramc.quests.AuroraQuests
+api-version: 1.20
+authors: [ "erik_sz" ]
+folia-supported: true
+depend:
+  - "Aurora"
+softdepend:
+  - "LuckPerms"
+  - "AuraSkills"
+  - "MythicMobs"
+  - "PlaceholderAPI"
+  - "Citizens"
+  - "Shopkeepers"
+  - "CustomFishing"
+  - "EconomyShopGUI"
+  - "EconomyShopGUI-Premium"
+  - "AuroraLevels"
+  - "ShopGUIPlus"
+  - "MythicLib"
+  - "FancyNpcs"
+  - "Adyeshach"
+  - "SuperiorSkyblock2"
+  - "MythicDungeons"
+  - "ServersNPC"
+  - "Nexo"
+  - "ExcellentShop"
+  - "ZNPCsPlus"
+
+website: https://auroramc.gg
+
+permissions:
+  aurora.quests.use:
+    description: Allows the player to use the /quests command
+    default: true
+  aurora.quests.admin.*:
+    default: op
+    children:
+      - aurora.quests.admin.reload
+      - aurora.quests.admin.reroll
+      - aurora.quests.admin.open
+      - aurora.quests.admin.reroll
+      - aurora.quests.admin.unlock
+      - aurora.quests.admin.complete
+      - aurora.quests.admin.reset
+
+libraries:
+  - org.quartz-scheduler:quartz:2.3.2
+  - com.cronutils:cron-utils:9.2.0

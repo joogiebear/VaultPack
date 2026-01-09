@@ -1,0 +1,309 @@
+# VaultPack Modern Language File (Phase 3)
+# This file demonstrates Adventure API with MiniMessage formatting
+#
+# MiniMessage Guide:
+# - Colors: <red>, <green>, <gold>, <yellow>, <blue>, etc.
+# - Hex colors: <#FF5555>, <#55FF55>, etc.
+# - Gradients: <gradient:red:blue>Text</gradient>
+# - Formatting: <bold>, <italic>, <underlined>, <strikethrough>, <obfuscated>
+# - Hover: <hover:show_text:'Tooltip'>Text</hover>
+# - Click: <click:run_command:'/command'>Text</click>
+# - Combined: <gradient:gold:yellow><bold>Fancy!</bold></gradient>
+#
+# Legacy color codes (&c, &l, etc.) still work for backward compatibility!
+# The MessageManager automatically converts them to MiniMessage format.
+
+# Prefix with gradient
+prefix: "<gradient:dark_gray:gold>VaultPack</gradient> <dark_gray>»</dark_gray> "
+
+# Slot unlock messages with modern formatting
+slot-unlocked: "<green>✓ You unlocked backpack slot <yellow>#%slot%</yellow>!"
+slot-unlock-fail: "<red>✗ Not enough money! <yellow>Required: $%cost%"
+slot-unlock-no-permission: "<red>✗ You don't have permission to unlock this slot!"
+slot-already-unlocked: "<gold>⚠ This slot is already unlocked!"
+max-slots-reached: "<red>⚠ Maximum slots reached! <gray>(%max%)"
+invalid-slot-number: "<red>✗ Invalid slot! Must be between <yellow>1</yellow> and <yellow>18</yellow>."
+invalid-page-number: "<red>✗ Invalid page! Must be between <yellow>1</yellow> and <yellow>9</yellow>."
+
+# Backpack upgrade messages with gradients
+backpack-upgraded: "<gradient:green:aqua>✓ Backpack upgraded!</gradient> <white>%old_tier%</white> <gray>→</gray> <white>%new_tier%"
+backpack-upgrade-fail: "<red>✗ Not enough money! <yellow>Required: $%cost%"
+backpack-upgrade-max: "<gold>✓ This backpack is already maximum size!"
+backpack-upgrade-no-backpack: "<red>✗ No backpack in this slot to upgrade!"
+backpack-swap-size-error: "<red>✗ Can only swap with a LARGER backpack!"
+backpack-swap-size-info: "<yellow>Current: <white>%old_size% slots</white> <gray>|</gray> New: <white>%new_size% slots"
+backpack-swap-success: "<gradient:green:aqua>✓ Backpack upgraded!</gradient> <white>%old_size%</white> <gray>→</gray> <white>%new_size% slots"
+backpack-swap-preserved: "<green>✓ All items preserved!"
+
+# Backpack placement with clickable hover
+backpack-placed: "<green>✓ Backpack placed in slot <yellow>#%slot%</yellow>!"
+backpack-placed-type: "<green>✓ Placed <gold>%type%</gold> in slot <yellow>#%slot%</yellow>!"
+backpack-place-fail: "<red>✗ Hold a backpack item in your hand!"
+backpack-place-occupied: "<red>✗ Slot occupied! <hover:show_text:'<gray>Right-click to remove existing backpack'>Remove it first</hover>."
+backpack-item-only: "<red>✗ Only backpack items allowed!"
+backpack-item-invalid: "<red>✗ Invalid backpack item!"
+backpack-type-unknown: "<red>✗ Unknown backpack type: <yellow>%type%"
+backpack-place-error: "<red>✗ Failed to place: <gray>%error%"
+slot-locked: "<red>✗ This slot is locked! <hover:show_text:'<yellow>Use /backpack to unlock'>Unlock it first</hover>."
+no-permission: "<red>✗ No permission!"
+
+# Backpack removal
+backpack-removed: "<green>✓ Backpack removed from slot <yellow>#%slot%</yellow> and returned!"
+backpack-removed-type: "<green>✓ Removed <gold>%type%</gold> from slot <yellow>#%slot%</yellow>!"
+backpack-removed-dropped: "<yellow>⚠ Inventory full! Backpack dropped at your feet."
+backpack-remove-fail: "<red>✗ No backpack in this slot!"
+backpack-remove-not-empty: "<red>✗ Backpack contains items! Empty it first."
+backpack-remove-tip: "<gray>💡 Tip: <yellow>You can upgrade backpacks without removing them."
+backpack-remove-full-inventory: "<red>✗ Inventory full! Cannot remove backpack."
+backpack-remove-confirm: "<yellow>⚠ Right-click again to confirm removal. Items will be safe!"
+backpack-remove-error: "<red>✗ Failed to remove: <gray>%error%"
+
+# Backpack usage
+backpack-opened: "<green>✓ Opened backpack <yellow>#%slot%"
+backpack-full: "<red>✗ Backpack full! <gray>(%used%/%size% slots)"
+backpack-empty: "<gray>This backpack is empty."
+
+# Ender chest with fancy formatting
+ender-page-unlocked: "<gradient:dark_purple:light_purple>✓ Ender page %page% unlocked!</gradient>"
+ender-page-unlocked-cost: "<gradient:dark_purple:light_purple>✓ Ender page %page% unlocked for $%cost%!</gradient>"
+enderchest-invalid-page: "<red>✗ Invalid page! Use <yellow>1-9</yellow>."
+enderchest-page-locked: "<dark_purple>✗ Ender Page %page% is locked! <hover:show_text:'<yellow>Click to unlock'>Unlock it</hover>."
+enderchest-view-pages: "<yellow>💡 Use <click:run_command:'/enderchest'><green>/enderchest</green></click> to view all pages."
+
+# Error messages
+player-not-found: "<red>✗ Player not found!"
+command-player-only: "<red>✗ This command is player-only!"
+economy-not-found: "<red>✗ Economy plugin not found! Contact an admin."
+data-load-error: "<red>✗ Failed to load your data! Contact an admin."
+menu-not-found: "<red>✗ Menu not found: <yellow>%menu%"
+menu-not-implemented: "<yellow>⚠ Menu not implemented: <gray>%menu%"
+feature-coming-soon: "<yellow>⏰ Coming soon!"
+
+# Admin messages with gradient
+admin-unknown-command: "<red>✗ Unknown command! Use <yellow>/vaultpack help"
+admin-reload-start: "<yellow>⟳ Reloading VaultPack..."
+admin-slot-given: "<green>✓ Gave <yellow>%player%</yellow> access to slot <yellow>#%slot%</yellow>!"
+admin-slot-given-target: "<green>✓ You've been given access to backpack slot <yellow>#%slot%</yellow>!"
+admin-slot-removed: "<red>✗ Removed <yellow>%player%</yellow>'s access to slot <yellow>#%slot%</yellow>!"
+admin-backpack-cleared: "<green>✓ Cleared <yellow>%player%</yellow>'s backpack <yellow>#%slot%</yellow>!"
+admin-backpack-cleared-target: "<yellow>⚠ Your backpack <yellow>#%slot%</yellow> was cleared by an admin!"
+admin-backpack-no-backpack: "<red>✗ Player doesn't have a backpack in that slot!"
+admin-backpack-given: "<green>✓ Gave <yellow>%player%</yellow> <white>%amount%x %type%</white>!"
+admin-backpack-given-target: "<green>✓ You received <white>%amount%x %type%</white>!"
+admin-reload: "<gradient:green:aqua>✓ VaultPack reloaded!</gradient>"
+admin-invalid-amount: "<red>✗ Invalid amount!"
+admin-invalid-type: "<red>✗ Invalid backpack type! Available types:"
+admin-player-offline: "<red>✗ Player not found or offline!"
+
+# GUI item names and lore with modern formatting
+gui:
+  locked-slot:
+    name: "<gray>Backpack Slot #%slot% <red>[LOCKED]"
+    lore:
+      - "<gray>This slot is currently locked."
+      - ""
+      - "<yellow>Unlock Options:"
+      - "<green>  • Economy: <gold>$%cost%"
+      - "<green>  • Permission: <white>%permission%"
+      - ""
+      - "<gray>Purchase upgrades or obtain"
+      - "<gray>permissions to unlock this slot!"
+      - ""
+      - "<dark_gray>Slot ID: #%slot%"
+
+  empty-slot:
+    name: "<green>Backpack Slot #%slot% <gray>[EMPTY]"
+    lore:
+      - "<gray>This slot is unlocked but empty!"
+      - ""
+      - "<gray>Craft a backpack item and"
+      - "<gray>click here to place it."
+      - ""
+      - "<yellow>Left-Click <gray>to place backpack"
+      - ""
+      - "<dark_gray>Slot ID: #%slot%"
+
+  active-slot:
+    name: "<gradient:gold:yellow><bold>Backpack #%slot%</bold></gradient>"
+    lore:
+      - "<gray>Tier: <white>%tier%"
+      - "<gray>Capacity: <yellow>%size% slots"
+      - "<gray>Used: <green>%used%</green><gray>/</gray><yellow>%size%"
+      - "<gray>Fullness: %fullness_bar%"
+      - ""
+      - "<yellow>Left-Click <gray>to open backpack"
+      - "<yellow>Right-Click <gray>to remove backpack"
+      - "<yellow>Shift-Click <gray>to upgrade size"
+      - ""
+      - "<dark_gray>Slot ID: #%slot%"
+
+  close-button:
+    name: "<red><bold>Close Menu"
+    lore:
+      - "<gray>Click to close"
+
+  storage-backpack-status:
+    placed: "<gray>Status: <green>Placed in slot #%slot%"
+    items: "<gray>Items: <white>%used%/%size%"
+    contains-items: "<red><bold>Contains items - Cannot remove!"
+    click-to-remove: "<green><bold>Click to remove (empty)"
+
+  info-button:
+    name: "<gradient:aqua:blue><bold>Backpack Info</bold></gradient>"
+    lore:
+      - "<gray>Total Slots: <yellow>%unlocked%</yellow><gray>/<yellow>%max%"
+      - "<gray>Active Backpacks: <green>%active%"
+      - "<gray>Total Storage: <yellow>%total_slots% slots"
+      - ""
+      - "<gray>Backpacks provide extra"
+      - "<gray>storage that you can access"
+      - "<gray>anywhere, anytime!"
+
+  upgrade-button:
+    name: "<green><bold>⬆ Upgrade Size"
+    lore:
+      - "<gray>Current: <white>%current_tier%</white> <gray>(<yellow>%current_size% slots</yellow>)"
+      - "<gray>Next: <white>%next_tier%</white> <gray>(<yellow>%next_size% slots</yellow>)"
+      - ""
+      - "<yellow>Cost: <green>$%cost%"
+      - ""
+      - "<yellow>Click to upgrade!"
+
+  unlock-button:
+    name: "<green><bold>🔓 Unlock Slot"
+    lore:
+      - "<gray>Unlock this backpack slot"
+      - "<gray>to store another backpack!"
+      - ""
+      - "<yellow>Cost: <green>$%cost%"
+      - ""
+      - "<yellow>Click to unlock!"
+
+# Fullness bar with gradient (shows as color progression)
+fullness-bar:
+  empty: "<dark_gray>[----------]"
+  10: "<red>[<green>█</green><dark_gray>---------]"
+  20: "<red>[<green>██</green><dark_gray>--------]"
+  30: "<gold>[<green>███</green><dark_gray>-------]"
+  40: "<gold>[<green>████</green><dark_gray>------]"
+  50: "<yellow>[<green>█████</green><dark_gray>-----]"
+  60: "<yellow>[<green>██████</green><dark_gray>----]"
+  70: "<dark_green>[<green>███████</green><dark_gray>---]"
+  80: "<dark_green>[<green>████████</green><dark_gray>--]"
+  90: "<green>[<green>█████████</green><dark_gray>-]"
+  100: "<green>[<green>██████████</green>]"
+
+# Command help with clickable commands
+commands:
+  help:
+    - "<dark_gray>-----------------------------"
+    - "<gradient:gold:yellow><bold>VaultPack Commands</bold></gradient>"
+    - "<dark_gray>-----------------------------"
+    - "<yellow><click:suggest_command:'/backpack'>/backpack</click></yellow> <gray>- Open backpack menu"
+    - "<yellow><click:suggest_command:'/backpack 1'>/backpack [slot]</click></yellow> <gray>- Open specific backpack"
+    - "<yellow><click:suggest_command:'/backpack help'>/backpack help</click></yellow> <gray>- Show this help"
+    - ""
+    - "<gray>Aliases: <white>/bp, /bag, /bags"
+    - ""
+    - "<yellow><click:suggest_command:'/enderchest'>/enderchest [page]</click></yellow> <gray>- Open ender chest"
+    - "<gray>Aliases: <white>/ec, /echest"
+    - ""
+    - "<yellow><click:suggest_command:'/storage'>/storage</click></yellow> <gray>- Open unified storage menu"
+    - "<gray>Aliases: <white>/vault, /st"
+    - "<dark_gray>-----------------------------"
+
+# Ender chest unlock info with hover
+enderchest:
+  unlock-info:
+    - ""
+    - "<gradient:dark_purple:light_purple><bold>Ender Page %page% - Unlock Info</bold></gradient>"
+    - "<gray>Capacity: <aqua>45 slots</aqua> <gray>(5 rows)"
+    - ""
+    - "<yellow>Unlock Options:"
+    - "<dark_aqua>  • <gray>Economy: <green>$%cost%"
+    - "<dark_aqua>  • <gray>Permission: <white>%permission%"
+    - ""
+
+# Admin command messages with modern styling
+admin:
+  reload-success:
+    - "<gradient:green:aqua>✓ VaultPack v%version% reloaded successfully!</gradient>"
+    - "<gray>  • Config reloaded"
+    - "<gray>  • Menus reloaded"
+    - "<gray>  • Backpack types reloaded"
+  version:
+    - "<dark_gray>-----------------------------"
+    - "<gradient:gold:yellow><bold>VaultPack</bold></gradient>"
+    - "<gray>Version: <white>%version%"
+    - "<gray>Author: <white>VaultPack Team"
+    - "<gray>Vault: %vault%"
+    - "<gray>PlaceholderAPI: %papi%"
+    - "<dark_gray>-----------------------------"
+  reset-success:
+    - "<green>✓ Successfully reset data for <yellow>%player%"
+    - "<gray>  • All backpacks removed"
+    - "<gray>  • All ender chest pages cleared"
+    - "<gray>  • Slot unlocks reset to default"
+  reset-target: "<yellow>⚠ Your VaultPack data has been reset by an admin!"
+  inspect-header:
+    - "<dark_gray>=========================================="
+    - "<gradient:gold:yellow><bold>VaultPack Data:</bold></gradient> <yellow>%player%"
+    - "<dark_gray>=========================================="
+  inspect-backpacks:
+    - "<gradient:aqua:blue><bold>Backpacks:</bold></gradient>"
+    - "<gray>  Unlocked Slots: <white>%unlocked%/%max%"
+    - "<gray>  Active Backpacks: <white>%active%"
+    - "<gray>  Total Storage: <white>%total_slots% slots"
+    - "<gray>  Used Storage: <white>%used_slots% slots"
+  inspect-enderchest:
+    - "<gradient:dark_purple:light_purple><bold>Ender Chest:</bold></gradient>"
+    - "<gray>  Unlocked Pages: <white>%unlocked%/9"
+    - "<gray>  Total Storage: <white>%total_slots% slots"
+    - "<gray>  Used Storage: <white>%used_slots% slots"
+  inspect-footer:
+    - "<dark_gray>=========================================="
+  help-admin:
+    - "<dark_gray>-----------------------------"
+    - "<gradient:gold:yellow><bold>VaultPack Admin Commands</bold></gradient>"
+    - "<dark_gray>-----------------------------"
+    - "<yellow>/vaultpack help</yellow> <gray>- Show this help"
+    - "<yellow>/vaultpack version</yellow> <gray>- Show plugin info"
+    - "<yellow>/vaultpack reload</yellow> <gray>- Reload configuration"
+    - "<yellow>/vaultpack give <player> <slot></yellow> <gray>- Give slot access"
+    - "<yellow>/vaultpack giveitem <player> <type> [amt]</yellow> <gray>- Give backpack item"
+    - "<yellow>/vaultpack list</yellow> <gray>- List backpack types"
+    - "<yellow>/vaultpack clear <player> <slot></yellow> <gray>- Clear backpack contents"
+    - "<yellow>/vaultpack reset <player></yellow> <gray>- Reset ALL player data"
+    - "<yellow>/vaultpack inspect <player></yellow> <gray>- View player's storage"
+    - ""
+    - "<gray>Player commands:"
+    - "<yellow>/storage</yellow> <gray>- Open unified storage GUI"
+    - "<yellow>/backpack</yellow> <gray>- Open backpack selector"
+    - "<yellow>/backpack [slot]</yellow> <gray>- Open specific backpack"
+    - "<yellow>/enderchest [page]</yellow> <gray>- Open ender chest"
+    - "<dark_gray>-----------------------------"
+  help-player:
+    - "<dark_gray>-----------------------------"
+    - "<gradient:gold:yellow><bold>VaultPack Commands</bold></gradient>"
+    - "<dark_gray>-----------------------------"
+    - "<yellow>/vaultpack help</yellow> <gray>- Show this help"
+    - "<yellow>/vaultpack version</yellow> <gray>- Show plugin info"
+    - ""
+    - "<gray>Available commands:"
+    - "<yellow>/storage</yellow> <gray>- Open unified storage GUI"
+    - "<yellow>/backpack</yellow> <gray>- Open backpack selector"
+    - "<yellow>/backpack [slot]</yellow> <gray>- Open specific backpack"
+    - "<yellow>/enderchest [page]</yellow> <gray>- Open ender chest"
+    - "<dark_gray>-----------------------------"
+  help-admin-hint:
+    - ""
+    - "<gradient:gold:yellow><bold>Admin Commands:</bold></gradient>"
+    - "<gray>Use <yellow>/vaultpack help</yellow> for admin commands"
+  usage:
+    give: "<red>✗ Usage: <yellow>/vaultpack give <player> <slot>"
+    giveitem: "<red>✗ Usage: <yellow>/vaultpack giveitem <player> <backpack_type> [amount]"
+    giveitem-types: "<gray>Available types: <yellow>%types%"
+    clear: "<red>✗ Usage: <yellow>/vaultpack clear <player> <slot>"
+    reset: "<red>✗ Usage: <yellow>/vaultpack reset <player>"
+    reset-warning: "<yellow>⚠ Warning: This will delete ALL backpack and ender chest data!"
+    inspect: "<red>✗ Usage: <yellow>/vaultpack inspect <player>"

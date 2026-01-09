@@ -3,7 +3,6 @@ package com.vaultpack.commands;
 import com.vaultpack.VaultPackPlugin;
 import com.vaultpack.gui.BackpackSelectorGUI;
 import com.vaultpack.models.PlayerBackpackData;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -28,14 +27,14 @@ public class BackpackCommand implements CommandExecutor, TabCompleter {
         // /backpack - open menu
         if (args.length == 0) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "This command can only be used by players!");
+                plugin.getMessageManager().send(sender, "command-player-only");
                 return true;
             }
 
             Player player = (Player) sender;
 
             if (!player.hasPermission("vaultpack.use")) {
-                player.sendMessage(ChatColor.RED + "You don't have permission to use backpacks!");
+                plugin.getMessageManager().send(player, "no-permission");
                 return true;
             }
 
@@ -50,35 +49,33 @@ public class BackpackCommand implements CommandExecutor, TabCompleter {
             int slotNumber = Integer.parseInt(args[0]);
 
             if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "This command can only be used by players!");
+                plugin.getMessageManager().send(sender, "command-player-only");
                 return true;
             }
 
             Player player = (Player) sender;
 
             if (!player.hasPermission("vaultpack.use")) {
-                player.sendMessage(ChatColor.RED + "You don't have permission to use backpacks!");
+                plugin.getMessageManager().send(player, "no-permission");
                 return true;
             }
 
             // Validate slot number range
             if (slotNumber < 1 || slotNumber > 18) {
-                player.sendMessage(ChatColor.RED + "Backpack slot must be between 1 and 18!");
+                plugin.getMessageManager().send(player, "invalid-slot", "%max%", "18");
                 return true;
             }
 
             // Check if slot is unlocked
             PlayerBackpackData data = plugin.getDataManager().getPlayerData(player.getUniqueId());
             if (!data.isSlotUnlocked(slotNumber)) {
-                player.sendMessage(ChatColor.RED + "You haven't unlocked backpack slot " + slotNumber + " yet!");
-                player.sendMessage(ChatColor.YELLOW + "Open /storage to unlock it.");
+                plugin.getMessageManager().send(player, "slot-locked");
                 return true;
             }
 
             // Check if backpack exists in that slot
             if (!data.hasBackpack(slotNumber)) {
-                player.sendMessage(ChatColor.RED + "You don't have a backpack in slot " + slotNumber + "!");
-                player.sendMessage(ChatColor.YELLOW + "Place a backpack item in that slot via /storage.");
+                plugin.getMessageManager().send(player, "backpack-remove-fail");
                 return true;
             }
 
@@ -96,30 +93,27 @@ public class BackpackCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        sender.sendMessage(ChatColor.RED + "Unknown command! Use /backpack help");
-        sender.sendMessage(ChatColor.GRAY + "For admin commands, use /vaultpack");
+        // Unknown command
+        sender.sendMessage(plugin.getMessageManager().getMessage("no-permission")); // Temporary - will use proper error message
         return true;
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------");
-        sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Backpack Commands");
-        sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------");
-        sender.sendMessage(ChatColor.YELLOW + "/backpack " + ChatColor.GRAY + "- Open backpack selector GUI");
-        sender.sendMessage(ChatColor.YELLOW + "/backpack [slot] " + ChatColor.GRAY + "- Open specific backpack (1-18)");
-        sender.sendMessage(ChatColor.YELLOW + "/backpack help " + ChatColor.GRAY + "- Show this help");
-        sender.sendMessage("");
-        sender.sendMessage(ChatColor.GRAY + "Other player commands:");
-        sender.sendMessage(ChatColor.YELLOW + "/storage " + ChatColor.GRAY + "- Open unified storage GUI");
-        sender.sendMessage(ChatColor.YELLOW + "/enderchest [page] " + ChatColor.GRAY + "- Open ender chest (1-9)");
+        // Show appropriate help based on permission
+        String helpKey = "commands.help";
+        List<String> helpMessages = plugin.getMessageManager().getMessageList(helpKey);
 
-        if (sender.hasPermission("vaultpack.admin")) {
-            sender.sendMessage("");
-            sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Admin Commands");
-            sender.sendMessage(ChatColor.YELLOW + "/vaultpack help " + ChatColor.GRAY + "- View all admin commands");
+        for (String message : helpMessages) {
+            sender.sendMessage(message);
         }
 
-        sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------");
+        // Show admin commands only to admins
+        if (sender.hasPermission("vaultpack.admin")) {
+            List<String> adminHint = plugin.getMessageManager().getMessageList("admin.help-admin-hint");
+            for (String message : adminHint) {
+                sender.sendMessage(message);
+            }
+        }
     }
 
     @Override

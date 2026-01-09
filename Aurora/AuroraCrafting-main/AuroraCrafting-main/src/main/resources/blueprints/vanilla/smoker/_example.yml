@@ -1,0 +1,8 @@
+recipes:
+  - id: cooked_emerald
+    input: "minecraft:prismarine_shard"
+    result: "minecraft:emerald"
+    # Every field is optional below
+    experience: 10
+    cooking-time: 1000
+    category: misc

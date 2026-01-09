@@ -1,0 +1,54 @@
+package gg.auroramc.aurora.api.dependency;
+
+public enum Dep {
+    ECONOMYSHOPGUIPREMIUM("EconomyShopGUI-Premium"),
+    SUPERIORSKYBLOCK2("SuperiorSkyblock2"),
+    EXECUTABLE_BLOCKS("ExecutableBlocks"),
+    WILDREGENERATION("WildRegeneration"),
+    EXECUTABLE_ITEMS("ExecutableItems"),
+    ITEMS_ADDER("ItemsAdder"),
+    K_GENERATORS("KGenerators"),
+    MULTIVERSECORE("Multiverse-Core"),
+    AURELIUMSKILLS("AureliumSkills"),
+    ECONOMYSHOPGUI("EconomyShopGUI"),
+    CUSTOMFISHING("CustomFishing"),
+    CRAFT_ENGINE("CraftEngine"),
+    EVEN_MORE_FISH("EvenMoreFish"),
+    HEAD_DATABASE("HeadDatabase"),
+    PLAYER_POINTS("PlayerPoints"),
+    COINS_ENGINE("CoinsEngine"),
+    TRADESYSTEM("TradeSystem"),
+    SHOPKEEPERS("Shopkeepers"),
+    PROTCOLLIB("ProtocolLib"),
+    WORLDGUARD("WorldGuard"),
+    AURASKILLS("AuraSkills"),
+    MYTHICMOBS("MythicMobs"),
+    ESSENTIALS("Essentials"),
+    PAPI("PlaceholderAPI"),
+    ELITEMOBS("EliteMobs"),
+    GANGSPLUS("GangsPlus"),
+    CHESTSORT("ChestSort"),
+    REGIONAPI("RegionAPI"),
+    ITEM_EDIT("ItemEdit"),
+    MMOITEMS("MMOItems"),
+    CITIZENS("Citizens"),
+    ORAXEN("Oraxen"),
+    DUELS("Duels"),
+    VAULT("Vault"),
+    LANDS("Lands"),
+    NEXO("Nexo"),
+    ECO("Eco"),
+    CMI("CMI"),
+    CRACKSHOT("CrackShot"),
+    ;
+
+    private String id;
+
+    Dep(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
+}

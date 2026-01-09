@@ -12,9 +12,9 @@ import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class BackpackDataManager {
@@ -23,13 +23,43 @@ public class BackpackDataManager {
     private final File dataFile;
     private final File backupFolder;
     private FileConfiguration dataConfig;
-    private Map<UUID, PlayerBackpackData> playerDataCache;
+
+    // Phase 1: Enhanced caching system
+    private final Map<UUID, PlayerBackpackData> playerDataCache;
+    private final Map<UUID, LoadingState> loadingStates;
+    private final Map<UUID, Long> lastAccessTime; // For LRU tracking
+    private final Set<UUID> scheduledUnloads; // Track pending unloads
+
+    // Cache configuration
+    private static final int DEFAULT_MAX_CACHE_SIZE = 200;
+    private static final long DEFAULT_UNLOAD_DELAY_TICKS = 6000L; // 5 minutes
+
+    /**
+     * Represents the loading state of player data
+     */
+    public enum LoadingState {
+        NOT_LOADED,
+        LOADING,
+        LOADED,
+        UNLOADING,
+        FAILED
+    }
+
+    // Phase 1: Cache statistics
+    private long cacheHits = 0;
+    private long cacheMisses = 0;
+    private long asyncLoads = 0;
 
     public BackpackDataManager(VaultPackPlugin plugin) {
         this.plugin = plugin;
         this.dataFile = new File(plugin.getDataFolder(), "playerdata.yml");
         this.backupFolder = new File(plugin.getDataFolder(), "backups");
-        this.playerDataCache = new HashMap<>();
+
+        // Phase 1: Initialize enhanced caching system with thread-safe maps
+        this.playerDataCache = new LinkedHashMap<>(16, 0.75f, true); // LRU cache (access-order)
+        this.loadingStates = new ConcurrentHashMap<>();
+        this.lastAccessTime = new ConcurrentHashMap<>();
+        this.scheduledUnloads = ConcurrentHashMap.newKeySet();
 
         // Create data file if it doesn't exist
         if (!dataFile.exists()) {
@@ -62,22 +92,145 @@ public class BackpackDataManager {
         }
     }
 
+    /**
+     * Phase 1: SYNCHRONOUS getter for backward compatibility
+     * This should only be used when data is guaranteed to be loaded
+     * For new code, use loadPlayerDataAsync()
+     *
+     * @param playerId Player UUID
+     * @return PlayerBackpackData or creates new if not exists
+     */
     public PlayerBackpackData getPlayerData(UUID playerId) {
+        // Update last access time for LRU
+        lastAccessTime.put(playerId, System.currentTimeMillis());
+
+        // Check cache first
+        PlayerBackpackData cached = playerDataCache.get(playerId);
+        if (cached != null) {
+            cacheHits++;
+            return cached;
+        }
+
+        cacheMisses++;
+
+        // Synchronous fallback - load immediately (legacy behavior)
+        // This blocks the thread but maintains backward compatibility
+        plugin.getLogger().warning("Synchronous data load for " + playerId + " - consider using async loading!");
         return playerDataCache.computeIfAbsent(playerId, id -> {
-            PlayerBackpackData data = loadPlayerData(id);
-            if (data == null) {
-                data = new PlayerBackpackData(id);
-                data.setUnlockedSlots(plugin.getConfigManager().getDefaultUnlockedSlots());
-            }
+            loadingStates.put(id, LoadingState.LOADING);
+            PlayerBackpackData data = loadPlayerDataSync(id);
+            loadingStates.put(id, LoadingState.LOADED);
             return data;
         });
     }
 
-    private PlayerBackpackData loadPlayerData(UUID playerId) {
+    /**
+     * Phase 1: ASYNC loading for player data (PREFERRED METHOD)
+     * Loads data in background and caches it
+     *
+     * @param playerId Player UUID
+     * @return CompletableFuture with PlayerBackpackData
+     */
+    public CompletableFuture<PlayerBackpackData> loadPlayerDataAsync(UUID playerId) {
+        // Cancel any scheduled unload for this player
+        if (scheduledUnloads.remove(playerId)) {
+            plugin.getLogger().info("Cancelled scheduled unload for " + playerId + " (player rejoined)");
+        }
+
+        // Update last access time
+        lastAccessTime.put(playerId, System.currentTimeMillis());
+
+        // Check if already loaded
+        PlayerBackpackData cached = playerDataCache.get(playerId);
+        if (cached != null) {
+            cacheHits++;
+            loadingStates.put(playerId, LoadingState.LOADED);
+            return CompletableFuture.completedFuture(cached);
+        }
+
+        // Check if already loading
+        LoadingState state = loadingStates.get(playerId);
+        if (state == LoadingState.LOADING) {
+            // Wait for existing load to complete
+            return waitForLoad(playerId);
+        }
+
+        cacheMisses++;
+        asyncLoads++;
+
+        // Mark as loading
+        loadingStates.put(playerId, LoadingState.LOADING);
+
+        // Load asynchronously
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                PlayerBackpackData data = loadPlayerDataSync(playerId);
+
+                // Cache the data
+                synchronized (playerDataCache) {
+                    playerDataCache.put(playerId, data);
+                    enforceCacheSizeLimit();
+                }
+
+                loadingStates.put(playerId, LoadingState.LOADED);
+
+                plugin.getLogger().fine("Loaded data for " + playerId + " asynchronously");
+                return data;
+
+            } catch (Exception e) {
+                loadingStates.put(playerId, LoadingState.FAILED);
+                plugin.getLogger().log(Level.SEVERE, "Failed to load data for " + playerId, e);
+
+                // Return fresh data as fallback
+                PlayerBackpackData fallback = new PlayerBackpackData(playerId);
+                fallback.setUnlockedSlots(plugin.getConfigManager().getDefaultUnlockedSlots());
+                fallback.setUnlockedEnderPages(1);
+                return fallback;
+            }
+        });
+    }
+
+    /**
+     * Wait for an ongoing load to complete
+     */
+    private CompletableFuture<PlayerBackpackData> waitForLoad(UUID playerId) {
+        return CompletableFuture.supplyAsync(() -> {
+            // Poll for up to 5 seconds
+            for (int i = 0; i < 100; i++) {
+                LoadingState state = loadingStates.get(playerId);
+                if (state == LoadingState.LOADED || state == LoadingState.FAILED) {
+                    return playerDataCache.get(playerId);
+                }
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+
+            // Timeout - return fresh data
+            plugin.getLogger().warning("Timeout waiting for data load: " + playerId);
+            PlayerBackpackData fallback = new PlayerBackpackData(playerId);
+            fallback.setUnlockedSlots(plugin.getConfigManager().getDefaultUnlockedSlots());
+            fallback.setUnlockedEnderPages(1);
+            return fallback;
+        });
+    }
+
+    /**
+     * Phase 1: Renamed from loadPlayerData to loadPlayerDataSync
+     * Synchronous data loading from YAML file
+     */
+    private PlayerBackpackData loadPlayerDataSync(UUID playerId) {
         String path = "players." + playerId.toString();
 
         if (!dataConfig.contains(path)) {
-            return null;
+            // Return fresh data for new players
+            PlayerBackpackData data = new PlayerBackpackData(playerId);
+            data.setUnlockedSlots(plugin.getConfigManager().getDefaultUnlockedSlots());
+            data.setUnlockedEnderPages(1);
+            return data;
         }
 
         PlayerBackpackData data = new PlayerBackpackData(playerId);
@@ -270,41 +423,87 @@ public class BackpackDataManager {
     }
 
     private void saveDataFileAsync() {
-        org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, this::saveDataFile);
+        // Folia-compatible: Use AsyncScheduler for file I/O operations
+        org.bukkit.Bukkit.getAsyncScheduler().runNow(plugin, task -> saveDataFile());
     }
 
     public void saveAllData() {
-        plugin.getLogger().info("Saving all player backpack data...");
-
         // Use synchronous saving for shutdown to ensure all data is written
         for (UUID playerId : playerDataCache.keySet()) {
             savePlayerDataSync(playerId);
         }
-
-        plugin.getLogger().info("All player data saved!");
     }
 
+    /**
+     * Phase 1: DEPRECATED - No longer loads all data at startup
+     * Data is now loaded lazily when players join
+     * Kept for backward compatibility but does nothing
+     */
+    @Deprecated
     public void loadAllData() {
-        plugin.getLogger().info("Loading all player backpack data...");
+        plugin.getLogger().info("Phase 1: Lazy loading enabled - player data will load on join");
+        plugin.getLogger().info("Skipping startup data load for improved performance");
 
+        // Count total players in file for statistics
         ConfigurationSection playersSection = dataConfig.getConfigurationSection("players");
         if (playersSection != null) {
-            for (String uuidString : playersSection.getKeys(false)) {
-                try {
-                    UUID playerId = UUID.fromString(uuidString);
-                    getPlayerData(playerId); // Loads and caches
-                } catch (IllegalArgumentException e) {
-                    plugin.getLogger().warning("Invalid UUID in playerdata.yml: " + uuidString);
-                }
-            }
+            int totalPlayers = playersSection.getKeys(false).size();
+            plugin.getLogger().info("Found " + totalPlayers + " players in database (will load on demand)");
         }
-
-        plugin.getLogger().info("Loaded data for " + playerDataCache.size() + " players!");
     }
 
+    /**
+     * Phase 1: Enhanced unload with delayed removal
+     * Schedules data unload after configured delay
+     * If player rejoins during delay, unload is cancelled
+     *
+     * @param playerId Player UUID
+     */
     public void unloadPlayerData(UUID playerId) {
+        unloadPlayerData(playerId, DEFAULT_UNLOAD_DELAY_TICKS);
+    }
+
+    /**
+     * Phase 1: Unload player data with custom delay
+     *
+     * @param playerId Player UUID
+     * @param delayTicks Delay in ticks before unloading (20 ticks = 1 second)
+     */
+    public void unloadPlayerData(UUID playerId, long delayTicks) {
+        // Save immediately
         savePlayerData(playerId);
-        playerDataCache.remove(playerId);
+
+        // Mark as scheduled for unload
+        scheduledUnloads.add(playerId);
+
+        // Schedule delayed unload using Folia-compatible GlobalRegionScheduler
+        org.bukkit.Bukkit.getGlobalRegionScheduler().runDelayed(plugin, task -> {
+            // Check if still scheduled (might have been cancelled by rejoin)
+            if (scheduledUnloads.remove(playerId)) {
+                // Remove from cache
+                synchronized (playerDataCache) {
+                    playerDataCache.remove(playerId);
+                }
+                loadingStates.remove(playerId);
+                lastAccessTime.remove(playerId);
+
+                plugin.getLogger().fine("Unloaded data for " + playerId + " after " + (delayTicks / 20) + " seconds");
+            }
+        }, delayTicks);
+    }
+
+    /**
+     * Phase 1: Immediate unload without delay (for shutdown)
+     */
+    public void unloadPlayerDataImmediate(UUID playerId) {
+        savePlayerDataSync(playerId);
+        scheduledUnloads.remove(playerId);
+
+        synchronized (playerDataCache) {
+            playerDataCache.remove(playerId);
+        }
+        loadingStates.remove(playerId);
+        lastAccessTime.remove(playerId);
     }
 
     public void clearCache() {
@@ -334,25 +533,29 @@ public class BackpackDataManager {
     }
 
     /**
-     * Create a timestamped backup of player data
+     * Create a timestamped backup of player data asynchronously
+     * PERFORMANCE FIX: Runs backup async to prevent server lag
      */
     public void createBackup() {
-        try {
-            // Generate timestamp for backup name
-            String timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new java.util.Date());
-            File backupFile = new File(backupFolder, "playerdata_" + timestamp + ".yml");
+        // Folia-compatible: Use AsyncScheduler for file I/O operations
+        org.bukkit.Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+            try {
+                // Generate timestamp for backup name
+                String timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new java.util.Date());
+                File backupFile = new File(backupFolder, "playerdata_" + timestamp + ".yml");
 
-            // Copy current data file to backup
-            java.nio.file.Files.copy(dataFile.toPath(), backupFile.toPath());
+                // Copy current data file to backup
+                java.nio.file.Files.copy(dataFile.toPath(), backupFile.toPath());
 
-            plugin.getLogger().info("Backup created: " + backupFile.getName());
+                plugin.getLogger().info("Backup created: " + backupFile.getName());
 
-            // Clean up old backups (keep last 10)
-            cleanupOldBackups(10);
+                // Clean up old backups (keep last 10)
+                cleanupOldBackups(com.vaultpack.utils.Constants.BACKUP_RETENTION_COUNT);
 
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Failed to create backup!", e);
-        }
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.WARNING, "Failed to create backup!", e);
+            }
+        });
     }
 
     /**
@@ -385,11 +588,96 @@ public class BackpackDataManager {
      * Schedule automatic backups every 30 minutes
      */
     private void scheduleAutoBackup() {
+        // Folia-compatible: Use GlobalRegionScheduler for periodic global tasks
         // Run backup every 30 minutes (36000 ticks)
-        org.bukkit.Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+        org.bukkit.Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, task -> {
             plugin.getLogger().info("Running automatic backup...");
             createBackup();
         }, 36000L, 36000L); // 30 minutes = 36000 ticks
+    }
+
+    /**
+     * Phase 1: Enforce cache size limit using LRU eviction
+     * Removes least recently accessed data when cache exceeds max size
+     * Must be called inside synchronized block on playerDataCache
+     */
+    private void enforceCacheSizeLimit() {
+        int maxSize = plugin.getConfig().getInt("performance.max-cached-players", DEFAULT_MAX_CACHE_SIZE);
+
+        if (playerDataCache.size() <= maxSize) {
+            return; // Within limit
+        }
+
+        // Find least recently accessed player
+        UUID oldestPlayer = null;
+        long oldestAccess = Long.MAX_VALUE;
+
+        for (Map.Entry<UUID, Long> entry : lastAccessTime.entrySet()) {
+            if (entry.getValue() < oldestAccess) {
+                oldestAccess = entry.getValue();
+                oldestPlayer = entry.getKey();
+            }
+        }
+
+        // Evict oldest player
+        if (oldestPlayer != null) {
+            plugin.getLogger().fine("Cache limit reached - evicting " + oldestPlayer);
+
+            // Save before eviction
+            savePlayerDataSync(oldestPlayer);
+
+            // Remove from cache
+            playerDataCache.remove(oldestPlayer);
+            loadingStates.remove(oldestPlayer);
+            lastAccessTime.remove(oldestPlayer);
+        }
+    }
+
+    /**
+     * Phase 1: Get current loading state for a player
+     */
+    public LoadingState getLoadingState(UUID playerId) {
+        return loadingStates.getOrDefault(playerId, LoadingState.NOT_LOADED);
+    }
+
+    /**
+     * Phase 1: Check if player data is loaded
+     */
+    public boolean isDataLoaded(UUID playerId) {
+        return loadingStates.get(playerId) == LoadingState.LOADED;
+    }
+
+    /**
+     * Phase 1: Get cache statistics
+     */
+    public String getCacheStats() {
+        double hitRate = cacheHits + cacheMisses > 0
+            ? (double) cacheHits / (cacheHits + cacheMisses) * 100
+            : 0;
+
+        return String.format(
+            "Cache Stats: %d/%d entries | Hits: %d | Misses: %d | Hit Rate: %.1f%% | Async Loads: %d",
+            playerDataCache.size(),
+            plugin.getConfig().getInt("performance.max-cached-players", DEFAULT_MAX_CACHE_SIZE),
+            cacheHits,
+            cacheMisses,
+            hitRate,
+            asyncLoads
+        );
+    }
+
+    /**
+     * Phase 1: Get current cache size
+     */
+    public int getCacheSize() {
+        return playerDataCache.size();
+    }
+
+    /**
+     * Phase 1: Get number of scheduled unloads
+     */
+    public int getScheduledUnloadsCount() {
+        return scheduledUnloads.size();
     }
 
     /**

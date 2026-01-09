@@ -1,0 +1,62 @@
+config-version: 0
+
+rows: 6
+
+category-icon:
+  enabled: true
+  item:
+    slot: 4
+
+# These lines will be added to the recipe item lore
+append-lore:
+  - " "
+  - "&eClick to view recipe"
+
+# Slots where we display the recipes
+display-area: [
+  10, 11, 12, 13, 14, 15, 16,
+  19, 20, 21, 22, 23, 24, 25,
+  28, 29, 30, 31, 32, 33, 34,
+  37, 38, 39, 40, 41, 42, 43
+]
+
+# Item that will be displayed instead of the recipe if the player
+# doesn't have the permission that required for the recipe
+secret-recipe-display:
+  enabled: true
+  item:
+    name: "&c???"
+    material: gray_dye
+    lore:
+      - "&7You have not unlocked this recipe yet."
+
+filler:
+  material: black_stained_glass_pane
+  hide-tooltip: true
+  name: ""
+
+items:
+  back:
+    material: arrow
+    name: "&7Back"
+    slot: 45
+  next-page:
+    material: paper
+    name: "&fNext Page"
+    slot: 50
+  previous-page:
+    material: paper
+    name: "&fPrevious Page"
+    slot: 48
+  current-page:
+    material: paper
+    name: "&f{current}/{max}"
+    slot: 49
+
+custom-items:
+  close:
+    material: barrier
+    name: "&cClose"
+    slot: 53
+    on-click:
+      - "[close]"
