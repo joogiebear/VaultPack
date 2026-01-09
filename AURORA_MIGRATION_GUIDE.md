@@ -19,7 +19,7 @@ This document outlines a phased approach to refactor VaultPack to follow Aurora'
 | Phase | Status | Completion Date | Notes |
 |-------|--------|----------------|-------|
 | Phase 0: Preparation | ✅ Completed | 2026-01-08 | Testing infrastructure set up successfully |
-| Phase 1: Build & Dependencies | ⬜ Not Started | - | - |
+| Phase 1: Build & Dependencies | ✅ Completed | 2026-01-08 | ACF, Lombok, and bStats added successfully |
 | Phase 2: Configuration System | ⬜ Not Started | - | - |
 | Phase 3: Command Framework | ⬜ Not Started | - | - |
 | Phase 4: Message & Localization | ⬜ Not Started | - | - |
@@ -115,8 +115,8 @@ This document outlines a phased approach to refactor VaultPack to follow Aurora'
 ## Phase 1: Build & Dependencies
 
 **Duration:** 2-3 days
-**Status:** ⬜ Not Started
-**Completion Date:** -
+**Status:** ✅ Completed
+**Completion Date:** 2026-01-08
 
 ### Objectives
 
@@ -2990,8 +2990,15 @@ Add notes here as each phase is completed:
   - Ready to begin Phase 1 (Build & Dependencies)
 
 **Phase 1:**
-- Completed: [Date]
-- Notes: [Any issues or learnings]
+- Completed: 2026-01-08
+- Notes:
+  - Successfully added ACF (Aikar's Command Framework) 0.5.1-SNAPSHOT
+  - Added Lombok 1.18.30 for code reduction
+  - Added bStats 3.0.2 for plugin metrics
+  - All dependencies properly relocated to avoid conflicts
+  - Build successful - JAR size: 5.6MB (within acceptable range)
+  - No dependency conflicts detected
+  - Ready to begin Phase 2 (Configuration System)
 
 [etc...]
 
