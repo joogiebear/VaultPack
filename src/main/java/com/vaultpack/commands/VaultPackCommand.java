@@ -96,7 +96,7 @@ public class VaultPackCommand extends BaseCommand {
     public void onGive(CommandSender sender, @Flags("other") Player target, int slot) {
         if (slot < 1 || slot > plugin.getConfigManager().getMaxBackpackSlots()) {
             plugin.getMessageManager().send(sender, "invalid-slot",
-                "%max%", String.valueOf(plugin.getConfigManager().getMaxBackpackSlots()));
+                "max", String.valueOf(plugin.getConfigManager().getMaxBackpackSlots()));
             return;
         }
 
@@ -105,10 +105,10 @@ public class VaultPackCommand extends BaseCommand {
         plugin.getDataManager().savePlayerData(target.getUniqueId());
 
         plugin.getMessageManager().send(sender, "admin-slot-given",
-            "%player%", target.getName(),
-            "%slot%", String.valueOf(slot));
+            "player", target.getName(),
+            "slot", String.valueOf(slot));
         plugin.getMessageManager().send(target, "admin-slot-given-target",
-            "%slot%", String.valueOf(slot));
+            "slot", String.valueOf(slot));
     }
 
     /**
@@ -149,12 +149,12 @@ public class VaultPackCommand extends BaseCommand {
         target.getInventory().addItem(backpackItem);
 
         plugin.getMessageManager().send(sender, "admin-backpack-given",
-            "%player%", target.getName(),
-            "%amount%", String.valueOf(amount),
-            "%type%", ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()));
+            "player", target.getName(),
+            "amount", String.valueOf(amount),
+            "type", ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()));
         plugin.getMessageManager().send(target, "admin-backpack-given-target",
-            "%amount%", String.valueOf(amount),
-            "%type%", ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()));
+            "amount", String.valueOf(amount),
+            "type", ChatColor.translateAlternateColorCodes('&', backpackType.getDisplayName()));
     }
 
     /**
@@ -195,10 +195,10 @@ public class VaultPackCommand extends BaseCommand {
             plugin.getDataManager().savePlayerData(target.getUniqueId());
 
             plugin.getMessageManager().send(sender, "admin-backpack-cleared",
-                "%player%", target.getName(),
-                "%slot%", String.valueOf(slot));
+                "player", target.getName(),
+                "slot", String.valueOf(slot));
             plugin.getMessageManager().send(target, "admin-backpack-cleared-target",
-                "%slot%", String.valueOf(slot));
+                "slot", String.valueOf(slot));
         } else {
             plugin.getMessageManager().send(sender, "admin-backpack-no-backpack");
         }
