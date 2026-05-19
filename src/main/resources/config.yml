@@ -235,7 +235,12 @@ advanced:
   check-updates: true
 
   # Metrics (bStats) - Help us improve!
+  # Set metrics to false to disable all bStats collection.
   metrics: true
+
+  # bStats plugin id for VaultPack. Keep this as 0 until the project is
+  # registered on bStats; metrics will not start until this is a real id.
+  bstats-plugin-id: 0
 
   # Max backpack title length (prevent issues)
   max-title-length: 32
