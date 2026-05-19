@@ -151,6 +151,8 @@ per-page-themes:
 sounds:
   open: BLOCK_ENDER_CHEST_OPEN
   close: BLOCK_ENDER_CHEST_CLOSE
+  click: UI_BUTTON_CLICK
+  error: ENTITY_VILLAGER_NO
   place-item: ENTITY_ITEM_PICKUP
   take-item: ENTITY_ITEM_PICKUP
   page-change: UI_BUTTON_CLICK

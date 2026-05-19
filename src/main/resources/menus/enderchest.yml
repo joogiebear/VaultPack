@@ -156,6 +156,7 @@ enderchest-pages:
 sounds:
   open: BLOCK_ENDER_CHEST_OPEN
   close: BLOCK_ENDER_CHEST_CLOSE
+  click: UI_BUTTON_CLICK
   page-open: BLOCK_ENDER_CHEST_OPEN
   unlock: ENTITY_PLAYER_LEVELUP
   error: ENTITY_VILLAGER_NO
