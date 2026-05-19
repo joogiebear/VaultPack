@@ -1,127 +1,87 @@
-# ============================================
-#           VaultPack Configuration
-# ============================================
-# v1.1.0 - Multi-backpack storage system
-# Phase 1: Enhanced with async loading & caching
-#
-# For GUI customization, see menus/ folder
-# For backpack types, see backpacks.yml
-# For messages, see lang.yml
-# ============================================
+# VaultPack configuration
 
-# ========== PERFORMANCE (Phase 1) ==========
-# New async loading and caching system for better scalability
+config-version: 3
+
+# General
+plugin-prefix: "&8[&6VaultPack&8]&r"
+default-language: en_US
+check-for-updates: true
+
+# Features
+enable-backpacks: true
+enable-ender-chests: true
+enable-virtual-storage: true
+enable-crafting: true
+
+# Storage limits
+max-backpack-slots: 18
+default-unlocked-slots: 1
+
+# Data storage
+storage-type: yaml
+backup-enabled: true
+auto-save-interval: 300
+max-backups: 5
+backup-format: "yyyy-MM-dd_HH-mm-ss"
+
+# Runtime data backend. Must match storage-type above.
+data:
+  storage-type: yaml
+
+database:
+  host: localhost
+  port: 3306
+  name: vaultpack
+  username: root
+  password: changeme
+  pool:
+    maximum-pool-size: 10
+    minimum-idle: 2
+    connection-timeout: 30000
+    idle-timeout: 600000
+    max-lifetime: 1800000
+  ssl:
+    enabled: false
+    verify-certificate: true
+
+# Performance
+cache-expiry-minutes: 30
+async-data-saving: true
+save-queue-size: 100
+enable-metrics: true
+
 performance:
-  # Maximum number of players to keep in cache
-  # Players are loaded on join and unloaded after disconnect
-  # LRU (Least Recently Used) eviction when limit is reached
-  # Higher values = more memory usage, faster access
-  # Lower values = less memory usage, more disk I/O
-  # Recommended: 200 for small servers, 500 for medium, 1000+ for large
-  max-cached-players: 200
-
-  # Delay before unloading player data after quit (in seconds)
-  # If player rejoins during this time, no reload is needed
-  # Set to 0 to unload immediately (not recommended)
-  # Recommended: 300 (5 minutes)
-  cache-unload-delay: 300
-
-  # Show cache statistics to admins on join
-  # Useful for monitoring performance
   show-cache-stats-on-join: false
 
-# ========== STORAGE LIMITS ==========
-storage:
-  # Maximum backpack slots players can unlock
-  max-backpack-slots: 18
+# Economy and unlock costs
+economy-enabled: true
+slot-unlock-enabled: true
+slot-unlock-base-cost: 1000
+slot-unlock-cost-per-slot: 500
+page-unlock-enabled: true
+page-unlock-base-cost: 2000
+page-unlock-cost-per-page: 1000
+upgrade-enabled: true
+upgrade-small-to-medium: 5000
+upgrade-medium-to-large: 10000
+upgrade-large-to-huge: 20000
+upgrade-huge-to-massive: 40000
+upgrade-massive-to-colossal: 80000
+upgrade-colossal-to-greater: 160000
+upgrade-greater-to-jumbo: 320000
 
-  # Default unlocked slots for new players
-  default-unlocked-slots: 1
+# Permission unlocks
+use-permissions-for-slots: true
+use-permissions-for-pages: true
+slot-permission-format: "vaultpack.slots.%slot%"
+page-permission-format: "vaultpack.enderchest.page.%page%"
 
-  # Maximum ender chest pages
-  max-enderchest-pages: 9
+# Item storage restrictions
+blacklist-enabled: true
+blacklist-message: "&cThis item cannot be stored in backpacks!"
 
-  # Default unlocked ender pages for new players
-  default-unlocked-pages: 1
-
-# ========== WORLD RESTRICTIONS ==========
-# Restrict backpack usage in certain worlds
-worlds:
-  enabled: false
-  # Mode: blacklist = disabled in listed worlds
-  #       whitelist = only enabled in listed worlds
-  mode: blacklist
-  list:
-    - pvp_arena
-    - minigames
-    - lobby
-  # Message when trying to use backpacks in restricted world
-  restricted-message: "&cBackpacks are disabled in this world!"
-
-# ========== COOLDOWNS ==========
-# Prevent spam actions (in seconds, 0 = no cooldown)
-cooldowns:
-  # Time between opening the same backpack
-  backpack-open: 0
-  # Time between slot unlock attempts
-  slot-unlock: 1
-  # Time between page unlock attempts
-  page-unlock: 1
-  # Time between backpack upgrades
-  backpack-upgrade: 1
-
-# ========== ECONOMY SETTINGS ==========
-economy:
-  enabled: true
-
-  # Backpack slot unlock costs
-  slot-unlock:
-    enabled: true
-    # Cost formula: base-cost + (slot-number * cost-per-slot)
-    # Example: Slot 2 = 1000 + (2 * 500) = 2000
-    #          Slot 3 = 1000 + (3 * 500) = 2500
-    base-cost: 1000
-    cost-per-slot: 500
-
-  # Ender chest page unlock costs
-  page-unlock:
-    enabled: true
-    # Cost formula: base-cost + (page-number * cost-per-page)
-    # Example: Page 2 = 2000 + (2 * 1000) = 4000
-    #          Page 3 = 2000 + (3 * 1000) = 5000
-    base-cost: 2000
-    cost-per-page: 1000
-
-  # Backpack upgrade costs (to increase size)
-  upgrade-costs:
-    small-to-medium: 5000
-    medium-to-large: 10000
-    large-to-greater: 20000
-    greater-to-jumbo: 40000
-
-# ========== PERMISSIONS ==========
-# Alternative to economy - use permissions instead
-permissions:
-  # Use permissions for slot unlocking
-  # Grant: vaultpack.slots.<slot-number>
-  use-for-slots: true
-  slot-format: "vaultpack.slots.%slot%"
-
-  # Use permissions for page unlocking
-  # Grant: vaultpack.enderchest.page.<page-number>
-  use-for-pages: true
-  page-format: "vaultpack.enderchest.page.%page%"
-
-  # If both economy and permissions are enabled:
-  # Player can unlock with EITHER money OR permission
-  require-both: false
-
-# ========== ITEM RESTRICTIONS ==========
 item-blacklist:
   enabled: true
-
-  # Prevent these items from being stored in backpacks
-  # Use Bukkit Material names
   materials:
     - BEDROCK
     - BARRIER
@@ -132,145 +92,17 @@ item-blacklist:
     - STRUCTURE_BLOCK
     - STRUCTURE_VOID
     - JIGSAW
-
-  # Prevent shulker boxes (prevents nested storage exploits)
   prevent-shulker-boxes: false
-
-  # If true, also prevents custom items from shulker boxes
   prevent-all-shulker-variants: false
 
-  # Custom message when blacklisted item is attempted
-  message: "&cThis item cannot be stored in backpacks!"
-
-# ========== DEATH PROTECTION ==========
-death-protection:
-  # Keep backpack items on death
-  keep-backpack-items: true
-
-  # Keep ender chest items on death (vanilla ender chests already do this)
-  keep-ender-items: true
-
-  # If false, items drop on death
-  # If true and keep-gamerule is enabled, items are kept
-  respect-keep-inventory-gamerule: true
-
-# ========== PLUGIN INTEGRATION ==========
-hooks:
-  # Vault - Economy support (required for economy features)
-  vault:
-    enabled: true
-
-  # PlaceholderAPI - Placeholder support
-  placeholderapi:
-    enabled: true
-
-  # EcoItems - Custom item support for recipes
-  ecoitems:
-    enabled: true
-
-# ========== DATA STORAGE (Phase 2) ==========
-data:
-  # Storage type: yaml or mysql
-  # yaml  - File-based storage (default, works out of the box)
-  # mysql - Database storage (requires MySQL 8.0+, best for large servers)
-  storage-type: yaml
-
-# ========== DATABASE CONFIGURATION (Phase 2) ==========
-# Only used when storage-type is set to mysql
-database:
-  # MySQL connection details
-  host: localhost
-  port: 3306
-  name: vaultpack
-  username: root
-  password: changeme
-
-  # Connection pool settings (HikariCP)
-  pool:
-    # Maximum number of connections in the pool
-    # Recommended: 10 for small servers, 20 for large servers
-    maximum-pool-size: 10
-
-    # Minimum number of idle connections to maintain
-    minimum-idle: 2
-
-    # Connection timeout in milliseconds (30 seconds)
-    connection-timeout: 30000
-
-    # Maximum time a connection can stay idle (10 minutes)
-    idle-timeout: 600000
-
-    # Maximum lifetime of a connection (30 minutes)
-    max-lifetime: 1800000
-
-  # SSL/TLS encryption for database connection
-  ssl:
-    enabled: false
-    verify-certificate: true
-
-# ========== OLD DATA STORAGE ==========
-# Legacy settings (kept for backward compatibility)
-data-legacy:
-  # Auto-save interval (in seconds)
-  auto-save-interval: 300
-
-  # Save data when player logs out
-  save-on-logout: true
-
-  # Save data when plugin disables
-  save-on-disable: true
-
-  # Storage format (json or yaml)
-  format: json
-
-  # Compress data to save space
-  compress: true
-
-# ========== ADVANCED SETTINGS ==========
+# Advanced
 advanced:
-  # Debug mode (verbose console logging)
   debug: false
-
-  # Check for updates on startup
-  check-updates: true
-
-  # Metrics (bStats) - Help us improve!
-  # Set metrics to false to disable all bStats collection.
   metrics: true
-
-  # Max backpack title length (prevent issues)
   max-title-length: 32
-
-  # Allow backpacks in backpacks (not recommended!)
   allow-nested-backpacks: false
-
-  # Enable shift-click to move items to backpacks
   shift-click-to-backpack: true
 
-# ========== SOUNDS ==========
-# Global sound settings (can be overridden in menus)
-sounds:
-  enabled: true
-  volume: 1.0
-  pitch: 1.0
-
-  # Specific sounds
-  backpack-open: BLOCK_CHEST_OPEN
-  backpack-close: BLOCK_CHEST_CLOSE
-  enderchest-open: BLOCK_ENDER_CHEST_OPEN
-  enderchest-close: BLOCK_ENDER_CHEST_CLOSE
-  slot-unlock: ENTITY_PLAYER_LEVELUP
-  backpack-upgrade: BLOCK_ANVIL_USE
-  backpack-place: ENTITY_ITEM_PICKUP
-  backpack-remove: ENTITY_ITEM_PICKUP
-  error: ENTITY_VILLAGER_NO
-
-# ========== PLACEHOLDERS ==========
-# Available placeholders (requires PlaceholderAPI):
-#   %vaultpack_slots_unlocked% - Number of unlocked backpack slots
-#   %vaultpack_slots_total% - Total backpack slots
-#   %vaultpack_pages_unlocked% - Number of unlocked ender pages
-#   %vaultpack_pages_total% - Total ender pages
-#   %vaultpack_backpack_<slot>_tier% - Tier of backpack in slot
-#   %vaultpack_backpack_<slot>_size% - Size of backpack in slot
-#   %vaultpack_backpack_<slot>_used% - Items in backpack in slot
+debug-mode: false
+verbose-logging: false
+log-sql-queries: false
