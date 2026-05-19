@@ -25,7 +25,7 @@ Use the committed Gradle wrapper from the repository root:
 The installable plugin jar is generated at:
 
 ```text
-build/libs/VaultPack-3.0.0.jar
+build/libs/VaultPack-4.0.0.jar
 ```
 
 Do not install Gradle cache files or any `original-*` jar if one is produced by a future build setup. Use the shaded `VaultPack-<version>.jar` from `build/libs`.
@@ -33,7 +33,7 @@ Do not install Gradle cache files or any `original-*` jar if one is produced by 
 ## Installation
 
 1. Stop the server.
-2. Copy `build/libs/VaultPack-3.0.0.jar` into the server `plugins/` folder.
+2. Copy `build/libs/VaultPack-4.0.0.jar` into the server `plugins/` folder.
 3. Install Vault/VaultUnlocked and an economy provider if economy features are enabled.
 4. Start the server once to generate configuration files.
 5. Review:
