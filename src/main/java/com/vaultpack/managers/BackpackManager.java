@@ -388,9 +388,7 @@ public class BackpackManager {
      * Now uses the new menu system from menus/storage.yml
      */
     public void openUnifiedStorageGUI(Player player) {
-        // TODO: Implement with new MenuManager and GUIBuilder
-        // For now, just open the main backpack menu
-        openBackpackMenu(player);
+        new com.vaultpack.gui.StorageMenuGUI(plugin).open(player);
     }
 
     /**
@@ -456,10 +454,10 @@ public class BackpackManager {
     }
 
     /**
-     * Legacy method - redirects to unified GUI
+     * Legacy method - opens the backpack selector GUI.
      */
     public void openBackpackMenu(Player player) {
-        openUnifiedStorageGUI(player);
+        new com.vaultpack.gui.BackpackSelectorGUI(plugin).open(player);
     }
 
     /**

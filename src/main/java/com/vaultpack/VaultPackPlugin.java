@@ -13,6 +13,8 @@ import com.vaultpack.managers.EconomyManager;
 import com.vaultpack.placeholder.BackpackPlaceholder;
 import lombok.Getter;
 import net.milkbowl.vault.economy.Economy;
+import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -44,6 +46,7 @@ public class VaultPackPlugin extends JavaPlugin {
     private Economy economy = null;
     private boolean vaultEnabled = false;
     private boolean placeholderAPIEnabled = false;
+    private Metrics metrics;
 
     @Override
     public void onEnable() {
@@ -77,6 +80,9 @@ public class VaultPackPlugin extends JavaPlugin {
         // Phase 7: Register expansions
         registerExpansions();
 
+        // Metrics are optional and require a real bStats plugin id in config.yml.
+        initializeMetrics();
+
         logger.info("VaultPack v" + getDescription().getVersion() + " enabled successfully!");
         logger.info("Vault: " + (vaultEnabled ? "✓" : "✗") + " | PlaceholderAPI: " + (placeholderAPIEnabled ? "✓" : "✗"));
     }
@@ -92,14 +98,18 @@ public class VaultPackPlugin extends JavaPlugin {
             expansionManager.disableAll();
         }
 
-        // Save all data and shutdown storage
-        if (dataManager != null) {
-            dataManager.shutdown();
-        }
-
-        // Close backpack inventories
+        // Close open storage inventories before final data save so the latest
+        // inventory contents are captured before storage shuts down.
         if (backpackManager != null) {
             backpackManager.closeAllBackpacks();
+        }
+        if (enderChestManager != null) {
+            enderChestManager.closeAllEnderPages();
+        }
+
+        // Save all data and shutdown storage after open inventories are closed.
+        if (dataManager != null) {
+            dataManager.shutdown();
         }
 
         logger.info("VaultPack v" + getDescription().getVersion() + " disabled.");
@@ -240,6 +250,33 @@ public class VaultPackPlugin extends JavaPlugin {
         new BackpackPlaceholder(this).register();
         placeholderAPIEnabled = true;
         logger.info("PlaceholderAPI hooked successfully!");
+    }
+
+    /**
+     * Initialize optional bStats metrics.
+     *
+     * <p>The plugin id must be supplied by the project owner after VaultPack is
+     * registered on bStats. A value of 0 keeps metrics disabled while still
+     * allowing release builds to include the shaded bStats dependency.</p>
+     */
+    private void initializeMetrics() {
+        if (!getConfig().getBoolean("advanced.metrics", true)) {
+            logger.info("bStats metrics disabled by configuration.");
+            return;
+        }
+
+        int pluginId = getConfig().getInt("advanced.bstats-plugin-id", 0);
+        if (pluginId <= 0) {
+            logger.info("bStats metrics not started: set advanced.bstats-plugin-id after registering VaultPack on bStats.");
+            return;
+        }
+
+        metrics = new Metrics(this, pluginId);
+        metrics.addCustomChart(new SimplePie("storage_type", () -> getConfig().getString("data.storage-type", "yaml")));
+        metrics.addCustomChart(new SimplePie("vault_hooked", () -> vaultEnabled ? "yes" : "no"));
+        metrics.addCustomChart(new SimplePie("placeholderapi_hooked", () -> placeholderAPIEnabled ? "yes" : "no"));
+        metrics.addCustomChart(new SimplePie("ecoitems_hooked", () -> Bukkit.getPluginManager().getPlugin("EcoItems") != null ? "yes" : "no"));
+        logger.info("bStats metrics initialized.");
     }
 
     /**
