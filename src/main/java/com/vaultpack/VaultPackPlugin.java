@@ -3,6 +3,8 @@ package com.vaultpack;
 import co.aikar.commands.PaperCommandManager;
 import com.vaultpack.commands.BackpackCommand;
 import com.vaultpack.commands.VaultPackCommand;
+import com.vaultpack.api.VaultPackRecipeBookService;
+import com.vaultpack.api.VaultPackRecipeBookServiceImpl;
 import com.vaultpack.data.BackpackDataManager;
 import com.vaultpack.listeners.BackpackListener;
 import com.vaultpack.listeners.PlayerListener;
@@ -18,6 +20,7 @@ import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Logger;
@@ -47,6 +50,7 @@ public class VaultPackPlugin extends JavaPlugin {
     private boolean vaultEnabled = false;
     private boolean placeholderAPIEnabled = false;
     private Metrics metrics;
+    private VaultPackRecipeBookService recipeBookService;
 
     @Override
     public void onEnable() {
@@ -74,6 +78,9 @@ public class VaultPackPlugin extends JavaPlugin {
         // Register listeners
         registerListeners();
 
+        // Register stable runtime services for optional integrations.
+        registerRuntimeServices();
+
         // Load player data
         dataManager.loadAllData();
 
@@ -92,6 +99,7 @@ public class VaultPackPlugin extends JavaPlugin {
         // Cancel all scheduled tasks (Folia-compatible)
         Bukkit.getGlobalRegionScheduler().cancelTasks(this);
         Bukkit.getAsyncScheduler().cancelTasks(this);
+        getServer().getServicesManager().unregisterAll(this);
 
         // Phase 7: Disable all expansions
         if (expansionManager != null) {
@@ -250,6 +258,20 @@ public class VaultPackPlugin extends JavaPlugin {
         new BackpackPlaceholder(this).register();
         placeholderAPIEnabled = true;
         logger.info("PlaceholderAPI hooked successfully!");
+    }
+
+    /**
+     * Register stable runtime services for optional integrations.
+     */
+    private void registerRuntimeServices() {
+        recipeBookService = new VaultPackRecipeBookServiceImpl(this);
+        getServer().getServicesManager().register(
+            VaultPackRecipeBookService.class,
+            recipeBookService,
+            this,
+            ServicePriority.Normal
+        );
+        logger.info("Registered VaultPack RecipeBook integration service");
     }
 
     /**
