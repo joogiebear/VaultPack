@@ -1,0 +1,36 @@
+# VaultPack backpack item definition
+id: large
+display-name: '&5Large Backpack'
+rarity: '&5Epic'
+tier: large
+storage:
+  rows: 3
+  size: 27
+item:
+  material: PLAYER_HEAD
+  texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODQ0NDk4YTBmZTI3ODk1NmUzZDA0MTM1ZWY0YjEzNDNkMDU0OGE3ZTIwOGM2MWIxZmI2ZjNiNGRiYzI0MGRhOCJ9fX0=
+  custom-model-data: 0
+  glow: true
+recipe:
+  enabled: true
+  permission: vaultpack.craft.large
+  slots:
+  - ecoitems:enchanted_leather 6
+  - ecoitems:enchanted_leather 6
+  - ecoitems:enchanted_leather 6
+  - ecoitems:enchanted_leather 6
+  - vaultpack:medium
+  - ecoitems:enchanted_leather 6
+  - ecoitems:enchanted_leather 6
+  - ecoitems:enchanted_leather 6
+  - ecoitems:enchanted_leather 6
+upgrade:
+  from: medium
+lore:
+- ''
+- '&7Rarity: &5Epic'
+- '&7Tier: &5%tier%'
+- '&7Capacity: &f%used%/%size% items'
+- ''
+- '&6Right-click to open'
+- '&7Drag into backpack menu to store'

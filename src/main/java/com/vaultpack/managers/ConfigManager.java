@@ -51,13 +51,15 @@ public class ConfigManager {
         mainConfig.load();
         mainConfig.validate();
 
-        // Initialize and load BackpacksConfig
+        // Initialize legacy BackpacksConfig only when an existing backpacks.yml is present.
+        // New installs use plugins/VaultPack/backpacks/*.yml item files instead.
         File backpacksFile = new File(plugin.getDataFolder(), "backpacks.yml");
-        if (!backpacksFile.exists()) {
-            plugin.saveResource("backpacks.yml", false);
+        if (backpacksFile.exists()) {
+            backpacksConfig = new BackpacksConfig(backpacksFile);
+            backpacksConfig.load();
+        } else {
+            backpacksConfig = null;
         }
-        backpacksConfig = new BackpacksConfig(backpacksFile);
-        backpacksConfig.load();
 
         plugin.getLogger().info("Configuration loaded successfully - VaultPack 3.0");
     }
@@ -105,7 +107,7 @@ public class ConfigManager {
      * @return The BackpackType, or null if not found
      */
     public BackpackType getBackpackType(String id) {
-        return backpacksConfig.getBackpackType(id);
+        return backpacksConfig != null ? backpacksConfig.getBackpackType(id) : null;
     }
 
     /**
@@ -114,7 +116,7 @@ public class ConfigManager {
      * @return List of BackpackType ordered by size
      */
     public List<BackpackType> getBackpackTypesBySize() {
-        return backpacksConfig.getBackpackTypesBySize();
+        return backpacksConfig != null ? backpacksConfig.getBackpackTypesBySize() : new ArrayList<>();
     }
 
     /**
