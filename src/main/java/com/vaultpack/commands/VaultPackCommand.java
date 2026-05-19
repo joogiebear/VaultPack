@@ -172,6 +172,44 @@ public class VaultPackCommand extends BaseCommand {
     }
 
     /**
+     * Validate loaded backpack item definitions.
+     * Usage: /vaultpack validate
+     */
+    @Subcommand("validate")
+    @CommandPermission("vaultpack.admin")
+    @Description("Validate loaded backpack item definitions")
+    public void onValidate(CommandSender sender) {
+        sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------");
+        sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "VaultPack Backpack Validation");
+        sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------");
+
+        for (String message : plugin.getBackpackTypeManager().validateBackpackDefinitions()) {
+            ChatColor color = message.startsWith("OK:") ? ChatColor.GREEN : ChatColor.RED;
+            sender.sendMessage(color + message);
+        }
+
+        sender.sendMessage(ChatColor.DARK_GRAY + "-----------------------------");
+    }
+
+    /**
+     * Migrate legacy backpacks.yml entries into backpacks/*.yml item files.
+     * Usage: /vaultpack migrate
+     */
+    @Subcommand("migrate")
+    @CommandPermission("vaultpack.admin")
+    @Description("Migrate legacy backpacks.yml into backpacks/*.yml item files")
+    public void onMigrate(CommandSender sender) {
+        boolean migrated = plugin.getBackpackTypeManager().migrateLegacyBackpacksToItemFiles();
+        if (!migrated) {
+            sender.sendMessage(ChatColor.YELLOW + "No legacy backpacks.yml entries were migrated.");
+            return;
+        }
+
+        plugin.getBackpackTypeManager().loadBackpackTypes();
+        sender.sendMessage(ChatColor.GREEN + "Migrated backpacks.yml into individual backpacks/*.yml files and reloaded backpack types.");
+    }
+
+    /**
      * Clear a player's backpack.
      * Usage: /vaultpack clear <player> <slot>
      */

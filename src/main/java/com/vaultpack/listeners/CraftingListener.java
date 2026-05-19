@@ -42,6 +42,7 @@ public class CraftingListener implements Listener {
     }
 
     private void cacheRecipeRequirements() {
+        recipeCache.clear();
         for (BackpackType type : plugin.getBackpackTypeManager().getAllBackpackTypes().values()) {
             if (type.hasRecipe()) {
                 RecipeRequirements requirements = new RecipeRequirements();

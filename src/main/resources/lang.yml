@@ -263,6 +263,8 @@ admin:
     - "&e/vaultpack give <player> <slot> &7- Give slot access"
     - "&e/vaultpack giveitem <player> <type> [amt] &7- Give backpack item"
     - "&e/vaultpack list &7- List backpack types"
+    - "&e/vaultpack validate &7- Validate backpack item files"
+    - "&e/vaultpack migrate &7- Split legacy backpacks.yml into item files"
     - "&e/vaultpack clear <player> <slot> &7- Clear backpack contents"
     - "&e/vaultpack reset <player> &7- Reset ALL player data"
     - "&e/vaultpack inspect <player> &7- View player's storage"

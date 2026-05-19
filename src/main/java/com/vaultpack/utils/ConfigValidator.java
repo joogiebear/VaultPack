@@ -96,55 +96,93 @@ public class ConfigValidator {
     }
 
     private void validateBackpacksConfig() {
+        int validated = 0;
+
         try {
-            FileConfiguration backpacksConfig = org.bukkit.configuration.file.YamlConfiguration
-                .loadConfiguration(new java.io.File(plugin.getDataFolder(), "backpacks.yml"));
-
-            ConfigurationSection backpacks = backpacksConfig.getConfigurationSection("backpacks");
-            if (backpacks == null) {
-                errors.add("backpacks.yml: Missing 'backpacks' section");
-                return;
-            }
-
-            for (String backpackId : backpacks.getKeys(false)) {
-                ConfigurationSection backpack = backpacks.getConfigurationSection(backpackId);
-                if (backpack == null) continue;
-
-                // Check required fields
-                if (!backpack.contains("display-name")) {
-                    errors.add("backpacks.yml: Backpack '" + backpackId + "' missing display-name");
-                }
-                if (!backpack.contains("tier")) {
-                    errors.add("backpacks.yml: Backpack '" + backpackId + "' missing tier");
-                }
-                if (!backpack.contains("size")) {
-                    errors.add("backpacks.yml: Backpack '" + backpackId + "' missing size");
-                } else {
-                    int size = backpack.getInt("size");
-                    if (size <= 0 || size % 9 != 0) {
-                        errors.add("backpacks.yml: Backpack '" + backpackId + "' size must be positive multiple of 9 (found: " + size + ")");
-                    }
-                    if (size > 45) {
-                        warnings.add("backpacks.yml: Backpack '" + backpackId + "' size is very large (" + size + ")");
-                    }
-                }
-
-                // Check material
-                if (!backpack.contains("material")) {
-                    warnings.add("backpacks.yml: Backpack '" + backpackId + "' missing material (will use default)");
-                }
-
-                // Check recipe
-                if (backpack.contains("recipe")) {
-                    List<?> recipe = backpack.getList("recipe");
-                    if (recipe != null && recipe.size() != 9) {
-                        errors.add("backpacks.yml: Backpack '" + backpackId + "' recipe must have exactly 9 slots");
+            java.io.File backpacksFile = new java.io.File(plugin.getDataFolder(), "backpacks.yml");
+            if (backpacksFile.exists()) {
+                FileConfiguration backpacksConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(backpacksFile);
+                ConfigurationSection backpacks = backpacksConfig.getConfigurationSection("backpacks");
+                if (backpacks != null) {
+                    for (String backpackId : backpacks.getKeys(false)) {
+                        ConfigurationSection backpack = backpacks.getConfigurationSection(backpackId);
+                        if (backpack == null) continue;
+                        validateBackpackSection("backpacks.yml", backpackId, backpack);
+                        validated++;
                     }
                 }
             }
 
+            java.io.File backpacksFolder = new java.io.File(plugin.getDataFolder(), "backpacks");
+            java.io.File[] files = backpacksFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".yml"));
+            if (files != null) {
+                for (java.io.File file : files) {
+                    FileConfiguration itemConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+                    ConfigurationSection backpack = itemConfig.isConfigurationSection("backpack")
+                            ? itemConfig.getConfigurationSection("backpack")
+                            : itemConfig;
+                    if (backpack == null) continue;
+                    String backpackId = backpack.getString("id", file.getName().replaceFirst("(?i)\\.yml$", ""));
+                    validateBackpackSection("backpacks/" + file.getName(), backpackId, backpack);
+                    validated++;
+                }
+            }
+
+            if (validated == 0) {
+                warnings.add("No backpack definitions found yet; default item files will be created during backpack loading");
+            }
         } catch (Exception e) {
-            errors.add("backpacks.yml: Failed to load or parse file - " + e.getMessage());
+            errors.add("Backpack definitions: Failed to load or parse files - " + e.getMessage());
+        }
+    }
+
+    private void validateBackpackSection(String source, String backpackId, ConfigurationSection backpack) {
+        // Check required fields
+        if (!backpack.contains("display-name")) {
+            errors.add(source + ": Backpack '" + backpackId + "' missing display-name");
+        }
+        if (!backpack.contains("tier")) {
+            errors.add(source + ": Backpack '" + backpackId + "' missing tier");
+        }
+
+        int size = backpack.getInt("size", 0);
+        ConfigurationSection storage = backpack.getConfigurationSection("storage");
+        if (storage != null) {
+            size = storage.getInt("size", size);
+            if (size <= 0 && storage.contains("rows")) {
+                size = storage.getInt("rows") * 9;
+            }
+        }
+        if (size <= 0) {
+            errors.add(source + ": Backpack '" + backpackId + "' missing size/storage.size");
+        } else {
+            if (size % 9 != 0) {
+                errors.add(source + ": Backpack '" + backpackId + "' size must be a positive multiple of 9 (found: " + size + ")");
+            }
+            if (size > 54) {
+                errors.add(source + ": Backpack '" + backpackId + "' size cannot be larger than 54 (found: " + size + ")");
+            }
+        }
+
+        ConfigurationSection item = backpack.getConfigurationSection("item");
+        if (!backpack.contains("material") && (item == null || !item.contains("material"))) {
+            warnings.add(source + ": Backpack '" + backpackId + "' missing material/item.material (will use default)");
+        }
+
+        if (backpack.contains("recipe")) {
+            Object recipeObject = backpack.get("recipe");
+            if (recipeObject instanceof List<?> recipe && recipe.size() != 9) {
+                errors.add(source + ": Backpack '" + backpackId + "' recipe must have exactly 9 slots");
+            } else if (recipeObject instanceof ConfigurationSection recipeSection) {
+                List<?> slots = recipeSection.getList("slots");
+                List<String> pattern = recipeSection.getStringList("pattern");
+                if (slots != null && !slots.isEmpty() && slots.size() != 9) {
+                    errors.add(source + ": Backpack '" + backpackId + "' recipe.slots must have exactly 9 slots");
+                }
+                if (!pattern.isEmpty() && pattern.size() != 3) {
+                    errors.add(source + ": Backpack '" + backpackId + "' recipe.pattern must have exactly 3 rows");
+                }
+            }
         }
     }
 

@@ -350,6 +350,11 @@ public class VaultPackPlugin extends JavaPlugin {
         // Reload menus (v1.0.0)
         menuManager.reloadMenus();
 
+        // Reload backpack item definitions
+        if (backpackTypeManager != null) {
+            backpackTypeManager.loadBackpackTypes();
+        }
+
         // Reload data
         dataManager.saveAllData();
         dataManager.loadAllData();
