@@ -49,6 +49,8 @@ public class VaultPackPlugin extends JavaPlugin {
     private Economy economy = null;
     private boolean vaultEnabled = false;
     private boolean placeholderAPIEnabled = false;
+    private static final int BSTATS_PLUGIN_ID = 31428;
+
     private Metrics metrics;
     private VaultPackRecipeBookService recipeBookService;
 
@@ -275,11 +277,7 @@ public class VaultPackPlugin extends JavaPlugin {
     }
 
     /**
-     * Initialize optional bStats metrics.
-     *
-     * <p>The plugin id must be supplied by the project owner after VaultPack is
-     * registered on bStats. A value of 0 keeps metrics disabled while still
-     * allowing release builds to include the shaded bStats dependency.</p>
+     * Initialize bStats metrics.
      */
     private void initializeMetrics() {
         if (!getConfig().getBoolean("advanced.metrics", true)) {
@@ -287,18 +285,12 @@ public class VaultPackPlugin extends JavaPlugin {
             return;
         }
 
-        int pluginId = getConfig().getInt("advanced.bstats-plugin-id", 0);
-        if (pluginId <= 0) {
-            logger.info("bStats metrics not started: set advanced.bstats-plugin-id after registering VaultPack on bStats.");
-            return;
-        }
-
-        metrics = new Metrics(this, pluginId);
+        metrics = new Metrics(this, BSTATS_PLUGIN_ID);
         metrics.addCustomChart(new SimplePie("storage_type", () -> getConfig().getString("data.storage-type", "yaml")));
         metrics.addCustomChart(new SimplePie("vault_hooked", () -> vaultEnabled ? "yes" : "no"));
         metrics.addCustomChart(new SimplePie("placeholderapi_hooked", () -> placeholderAPIEnabled ? "yes" : "no"));
         metrics.addCustomChart(new SimplePie("ecoitems_hooked", () -> Bukkit.getPluginManager().getPlugin("EcoItems") != null ? "yes" : "no"));
-        logger.info("bStats metrics initialized.");
+        logger.info("bStats metrics initialized with plugin ID " + BSTATS_PLUGIN_ID + ".");
     }
 
     /**

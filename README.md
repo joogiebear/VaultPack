@@ -86,15 +86,12 @@ When using MySQL, configure the `database:` section in `config.yml` before switc
 
 ### bStats metrics
 
-Metrics are disabled until a real bStats plugin id is configured:
+VaultPack ships with bStats wired to plugin ID `31428`. Metrics are enabled by default and can be disabled if needed:
 
 ```yaml
 advanced:
   metrics: true
-  bstats-plugin-id: 0
 ```
-
-After registering VaultPack on bStats, replace `0` with the assigned plugin id. Keeping the value at `0` leaves metrics off.
 
 ### Nested storage safety
 
