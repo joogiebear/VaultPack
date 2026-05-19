@@ -92,10 +92,12 @@ public class EnderChestListener implements Listener {
 
         switch (slot) {
             case 0: // Close button
+                playSound(player, "BLOCK_ENDER_CHEST_CLOSE");
                 player.closeInventory();
                 break;
 
             case 1: // Back to all pages
+                playSound(player, "UI_BUTTON_CLICK");
                 player.closeInventory();
                 // Folia-compatible: Use player's EntityScheduler
                 player.getScheduler().runDelayed(plugin, task -> {
@@ -108,6 +110,7 @@ public class EnderChestListener implements Listener {
             case 5: // First page
                 int firstPage = findFirstPage(data);
                 if (firstPage != -1 && firstPage != currentPage) {
+                    playSound(player, "UI_BUTTON_CLICK");
                     player.closeInventory();
                     // Folia-compatible: Use player's EntityScheduler
                     player.getScheduler().runDelayed(plugin, task -> {
@@ -116,6 +119,7 @@ public class EnderChestListener implements Listener {
                         }
                     }, null, 1L);
                 } else {
+                    playSound(player, "ENTITY_VILLAGER_NO");
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "Already at the first page!");
                 }
                 break;
@@ -123,6 +127,7 @@ public class EnderChestListener implements Listener {
             case 6: // Previous page
                 int previousPage = findPreviousPage(data, currentPage);
                 if (previousPage != -1) {
+                    playSound(player, "UI_BUTTON_CLICK");
                     player.closeInventory();
                     // Folia-compatible: Use player's EntityScheduler
                     player.getScheduler().runDelayed(plugin, task -> {
@@ -131,6 +136,7 @@ public class EnderChestListener implements Listener {
                         }
                     }, null, 1L);
                 } else {
+                    playSound(player, "ENTITY_VILLAGER_NO");
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "No previous page!");
                 }
                 break;
@@ -138,6 +144,7 @@ public class EnderChestListener implements Listener {
             case 7: // Next page
                 int nextPage = findNextPage(data, currentPage);
                 if (nextPage != -1) {
+                    playSound(player, "UI_BUTTON_CLICK");
                     player.closeInventory();
                     // Folia-compatible: Use player's EntityScheduler
                     player.getScheduler().runDelayed(plugin, task -> {
@@ -146,6 +153,7 @@ public class EnderChestListener implements Listener {
                         }
                     }, null, 1L);
                 } else {
+                    playSound(player, "ENTITY_VILLAGER_NO");
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "No next page!");
                 }
                 break;
@@ -153,6 +161,7 @@ public class EnderChestListener implements Listener {
             case 8: // Last page
                 int lastPage = findLastPage(data);
                 if (lastPage != -1 && lastPage != currentPage) {
+                    playSound(player, "UI_BUTTON_CLICK");
                     player.closeInventory();
                     // Folia-compatible: Use player's EntityScheduler
                     player.getScheduler().runDelayed(plugin, task -> {
@@ -161,9 +170,25 @@ public class EnderChestListener implements Listener {
                         }
                     }, null, 1L);
                 } else {
+                    playSound(player, "ENTITY_VILLAGER_NO");
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "Already at the last page!");
                 }
                 break;
+        }
+    }
+
+    /**
+     * Play a simple UI sound for ender page navigation feedback.
+     */
+    private void playSound(Player player, String soundName) {
+        if (soundName == null || soundName.isEmpty()) return;
+
+        try {
+            String convertedSound = soundName.toLowerCase().replace('_', '.');
+            player.playSound(player.getLocation(), convertedSound,
+                org.bukkit.SoundCategory.MASTER, 1.0f, 1.0f);
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Invalid sound: " + soundName);
         }
     }
 

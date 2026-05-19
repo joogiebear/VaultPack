@@ -456,10 +456,12 @@ public class BackpackListener implements Listener {
 
         switch (slot) {
             case 0: // Close button
+                playSound(player, "BLOCK_CHEST_CLOSE");
                 player.closeInventory();
                 break;
 
             case 1: // Back to all backpacks
+                playSound(player, "UI_BUTTON_CLICK");
                 player.closeInventory();
                 // Folia-compatible: Use player's EntityScheduler
                 player.getScheduler().runDelayed(plugin, task -> {
@@ -472,6 +474,7 @@ public class BackpackListener implements Listener {
             case 5: // First backpack
                 int firstSlot = findFirstBackpack(data);
                 if (firstSlot != -1 && firstSlot != currentSlot) {
+                    playSound(player, "UI_BUTTON_CLICK");
                     player.closeInventory();
                     // Folia-compatible: Use player's EntityScheduler
                     player.getScheduler().runDelayed(plugin, task -> {
@@ -480,6 +483,7 @@ public class BackpackListener implements Listener {
                         }
                     }, null, 1L);
                 } else {
+                    playSound(player, "ENTITY_VILLAGER_NO");
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "Already at the first backpack!");
                 }
                 break;
@@ -487,6 +491,7 @@ public class BackpackListener implements Listener {
             case 6: // Previous backpack
                 int previousSlot = findPreviousBackpack(data, currentSlot);
                 if (previousSlot != -1) {
+                    playSound(player, "UI_BUTTON_CLICK");
                     player.closeInventory();
                     // Folia-compatible: Use player's EntityScheduler
                     player.getScheduler().runDelayed(plugin, task -> {
@@ -495,6 +500,7 @@ public class BackpackListener implements Listener {
                         }
                     }, null, 1L);
                 } else {
+                    playSound(player, "ENTITY_VILLAGER_NO");
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "No previous backpack!");
                 }
                 break;
@@ -502,6 +508,7 @@ public class BackpackListener implements Listener {
             case 7: // Next backpack
                 int nextSlot = findNextBackpack(data, currentSlot);
                 if (nextSlot != -1) {
+                    playSound(player, "UI_BUTTON_CLICK");
                     player.closeInventory();
                     // Folia-compatible: Use player's EntityScheduler
                     player.getScheduler().runDelayed(plugin, task -> {
@@ -510,6 +517,7 @@ public class BackpackListener implements Listener {
                         }
                     }, null, 1L);
                 } else {
+                    playSound(player, "ENTITY_VILLAGER_NO");
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "No next backpack!");
                 }
                 break;
@@ -517,6 +525,7 @@ public class BackpackListener implements Listener {
             case 8: // Last backpack
                 int lastSlot = findLastBackpack(data);
                 if (lastSlot != -1 && lastSlot != currentSlot) {
+                    playSound(player, "UI_BUTTON_CLICK");
                     player.closeInventory();
                     // Folia-compatible: Use player's EntityScheduler
                     player.getScheduler().runDelayed(plugin, task -> {
@@ -525,9 +534,25 @@ public class BackpackListener implements Listener {
                         }
                     }, null, 1L);
                 } else {
+                    playSound(player, "ENTITY_VILLAGER_NO");
                     com.vaultpack.utils.ActionBarUtil.sendWarning(player, "Already at the last backpack!");
                 }
                 break;
+        }
+    }
+
+    /**
+     * Play a simple UI sound for backpack navigation feedback.
+     */
+    private void playSound(Player player, String soundName) {
+        if (soundName == null || soundName.isEmpty()) return;
+
+        try {
+            String convertedSound = soundName.toLowerCase().replace('_', '.');
+            player.playSound(player.getLocation(), convertedSound,
+                org.bukkit.SoundCategory.MASTER, 1.0f, 1.0f);
+        } catch (IllegalArgumentException e) {
+            plugin.getLogger().warning("Invalid sound: " + soundName);
         }
     }
 
